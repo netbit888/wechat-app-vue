@@ -1,0 +1,182 @@
+Folder PATH listing for volume Data
+Volume serial number is 1A88-8517
+D:\MOBILE\WECHAT-APP-VUE\SRC
+|   App.vue
+|   main.js
+|   project_tree.txt
+|   scan_project_tree.bat
+|   style.css
+|   
++---api
+|   |   index.js
+|   |   request.js
+|   |   test.js
+|   |   
+|   \---modules
+|           chat.js
+|           contact.js
+|           moments.js
+|           user.js
+|           
++---assets
+|   |   vue.svg
+|   |   
+|   +---images
+|   |       wechat-logo.svg
+|   |       
+|   \---styles
+|           base.css
+|           variables.css
+|           weui.css
+|           
++---components
+|   +---business
+|   |   +---Chat
+|   |   |   |   index.js
+|   |   |   |   TimeDivider.vue
+|   |   |   |   
+|   |   |   +---MessageBubble
+|   |   |   |       MessageBubble.vue
+|   |   |   |       
+|   |   |   \---MessageInput
+|   |   |           MessageInput.vue
+|   |   |           
+|   |   +---Common
+|   |   |   |   index.js
+|   |   |   |   
+|   |   |   \---SearchBar
+|   |   |           SearchBar.vue
+|   |   |           
+|   |   +---Contact
+|   |   |   |   index.js
+|   |   |   |   LetterNavigation.vue
+|   |   |   |   
+|   |   |   \---ContactItem
+|   |   |           ContactItem.vue
+|   |   |           
+|   |   +---Discover
+|   |   |       DiscoverItem.vue
+|   |   |       index.js
+|   |   |       
+|   |   \---Me
+|   |           index.js
+|   |           MenuItem.vue
+|   |           SettingsItem.vue
+|   |           
+|   +---layout
+|   |       MainLayout.vue
+|   |       
+|   \---ui
+|       |   index.js
+|       |   
+|       +---Avatar
+|       |       Avatar.vue
+|       |       
+|       +---Badge
+|       |       Badge.vue
+|       |       
+|       +---Button
+|       |       button.module.css
+|       |       Button.vue
+|       |       
+|       \---input
+|               indes.js
+|               input.vue
+|               
++---composables
+|       index.js
+|       useChat.js
+|       useContact.js
+|       useLocalStorage.js
+|       useStore.js
+|       useWebSocket.js
+|       
++---constants
+|       chatStatus.js
+|       index.js
+|       messageType.js
+|       
++---hooks
+|       index.js
+|       useContactList.js
+|       useMessage.js
+|       
++---mocks
+|       handlers.js
+|       
++---router
+|   |   index.js
+|   |   
+|   +---guards
+|   |       auth.js
+|   |       index.js
+|   |       
+|   \---routes
+|           chat.js
+|           contact.js
+|           discover.js
+|           me.js
+|           
++---store
+|   |   index.js
+|   |   
+|   \---modules
+|       +---app
+|       |       index.js
+|       |       state.js
+|       |       
+|       +---chat
+|       |       actions.js
+|       |       getters.js
+|       |       index.js
+|       |       mutations.js
+|       |       state.js
+|       |       
+|       +---contact
+|       |       index.js
+|       |       state.js
+|       |       
+|       \---user
+|               actions.js
+|               getters.js
+|               index.js
+|               mutations.js
+|               state.js
+|               
++---utils
+|       date.js
+|       emoji.js
+|       feedback.js
+|       format.js
+|       index.js
+|       storage.js
+|       validator.js
+|       
+\---views
+    |   index.js
+    |   NotFound.vue
+    |   
+    +---Auth
+    |       Login.vue
+    |       
+    +---Contact
+    |       ContactDetail.vue
+    |       ContactList.vue
+    |       NewFriends.vue
+    |       
+    +---Discover
+    |       Discover.vue
+    |       MiniPrograms.vue
+    |       Moments.vue
+    |       Scan.vue
+    |       
+    +---Me
+    |       Profile.vue
+    |       Settings.vue
+    |       Wallet.vue
+    |       
+    \---WeChat
+            Chat.vue
+            ChatDetail.vue
+            ChatList.vue
+            

@@ -7,11 +7,11 @@ export const chatApi = {
   
   // 获取聊天记录
   getMessages: (conversationId, params = {}) => 
-    http.get(`/chat/conversations/${conversationId}/messages`, params),
+    http.get(`/chat/messages/${userId}/${contactId}`),
   
   // 发送消息
-  sendMessage: (conversationId, messageData) => 
-    http.post(`/chat/conversations/${conversationId}/messages`, messageData),
+  sendMessage: (messageData) => 
+    http.post('/chat/send', messageData),
   
   // 删除消息
   deleteMessage: (conversationId, messageId) => 

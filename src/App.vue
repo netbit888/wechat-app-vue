@@ -1,18 +1,16 @@
 <template>
   <div id="app">
-    <!-- 路由出口，页面内容将在这里渲染 -->
+    <!-- 路由出口 -->
     <router-view />
+    
+    <!-- ✅ 测试组件放在 div 内部 -->
   </div>
 </template>
 
-<script>
-export default {
-  name: 'App'
-}
+<script setup>
 </script>
 
 <style>
-/* 全局样式 */
 #app {
   min-height: 100vh;
   background-color: var(--wechat-bg-color);

@@ -1,18 +1,12 @@
 export default {
   // 获取所有会话
-  allConversations: (state) => {
-    return state.conversations
-  },
+  allConversations: (state) => state.conversations,
   
   // 获取置顶会话
-  topConversations: (state) => {
-    return state.conversations.filter(conv => conv.isTop)
-  },
+  topConversations: (state) => state.conversations.filter(conv => conv.isTop),
   
   // 获取普通会话
-  normalConversations: (state) => {
-    return state.conversations.filter(conv => !conv.isTop)
-  },
+  normalConversations: (state) => state.conversations.filter(conv => !conv.isTop),
   
   // 获取当前选中的会话
   currentConversation: (state) => {
@@ -20,7 +14,12 @@ export default {
     return state.conversations.find(conv => conv.id === state.currentConversationId)
   },
   
-  // 获取当前会话的消息
+  // ✅ 新增：按会话ID获取消息（ChatDetail组件使用）
+  getMessagesByConversationId: (state) => (conversationId) => {
+    return state.messages[conversationId] || []
+  },
+  
+  // 获取当前会话的消息（保留原有方法确保兼容性）
   currentMessages: (state) => {
     if (!state.currentConversationId) return []
     return state.messages[state.currentConversationId] || []

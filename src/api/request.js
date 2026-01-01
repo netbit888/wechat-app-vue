@@ -57,7 +57,7 @@ request.interceptors.response.use(
         showToast('登录已过期，请重新登录')
         setTimeout(() => {
           store.dispatch('user/logout')
-          window.location.href = '/login'
+          window.location.href = '/auth/login'  // 或您的实际登录路径
         }, 2000)
         break
       case 403:

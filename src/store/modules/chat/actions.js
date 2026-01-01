@@ -38,19 +38,18 @@ export default {
     }
   },
   
-  // 获取聊天消息
-  async fetchMessages({ commit, state }, conversationId) {
+  // 修改 fetchMessages 方法（约第20-40行）
+  async fetchMessages({ commit, state }, { userId, contactId }) {
     try {
-      const response = await chatApi.getMessages(conversationId, {
-        since: state.messagesLastUpdate[conversationId]
-      })
+      const response = await chatApi.getMessages(userId, contactId)
       
-      if (response.code === 0) {
-        const messages = response.data.messages || []
+      if (response.success) {  // 注意检查 success 字段
+        const messages = response.messages || []  // 注意字段名是 messages
         
-        // 提交到store
-        commit('ADD_MESSAGES', { conversationId, messages })
-        commit('SET_MESSAGES_LAST_UPDATE', { conversationId, timestamp: Date.now() })
+        commit('ADD_MESSAGES', { 
+          conversationId: contactId,  // 使用 contactId 作为 conversationId
+          messages 
+        })
         
         return Promise.resolve(messages)
       } else {
@@ -58,61 +57,54 @@ export default {
         return Promise.reject(new Error(response.message))
       }
     } catch (error) {
+      console.error('获取消息失败:', error)
       showToast('获取消息失败，请检查网络', 'error')
       return Promise.reject(error)
     }
   },
   
-  // 发送消息
+  // 修改 sendMessage 方法（约第45-90行）
   async sendMessage({ commit, state }, { conversationId, content, type = 'text' }) {
     const userStore = useUserStore()
     const currentUser = userStore.currentUser
     
-    // 先创建本地消息（乐观更新）
+    // 临时消息（保持不变）
     const tempMessage = {
-      id: `temp_${Date.now()}`,
+      _id: `temp_${Date.now()}`,  // 改为 _id 与后端一致
       type,
       content,
-      senderId: currentUser.id,
-      time: new Date().toISOString(),
+      sender: { _id: currentUser.id, name: currentUser.name },  // 结构调整为对象
+      receiver: { _id: conversationId },
+      timestamp: new Date().toISOString(),
       status: 'sending'
     }
     
-    commit('ADD_MESSAGE', { conversationId, message: tempMessage })
+    commit('ADD_MESSAGE', { 
+      conversationId, 
+      message: tempMessage 
+    })
     
     try {
-      const response = await chatApi.sendMessage(conversationId, {
+      const response = await chatApi.sendMessage({
+        sender: currentUser.id,      // 只传ID
+        receiver: conversationId,    // 只传ID
         content,
-        type,
-        timestamp: tempMessage.time
+        type
       })
       
-      if (response.code === 0) {
-        // 更新消息状态为已发送
-        commit('UPDATE_MESSAGE_STATUS', {
+      if (response.success) {
+        // 成功后，用真实消息替换临时消息
+        commit('UPDATE_MESSAGE', {
           conversationId,
-          tempId: tempMessage.id,
-          realId: response.data.messageId,
-          status: 'sent'
-        })
-        
-        // 更新会话的最后消息
-        commit('UPDATE_CONVERSATION_LAST_MESSAGE', {
-          conversationId,
-          lastMessage: {
-            content,
-            type,
-            time: tempMessage.time,
-            senderId: currentUser.id
-          }
+          tempId: tempMessage._id,
+          message: response.data  // 后端返回的完整消息对象
         })
         
         return Promise.resolve(response.data)
       } else {
-        // 发送失败，更新消息状态
         commit('UPDATE_MESSAGE_STATUS', {
           conversationId,
-          tempId: tempMessage.id,
+          tempId: tempMessage._id,
           status: 'error'
         })
         
@@ -120,10 +112,9 @@ export default {
         return Promise.reject(new Error(response.message))
       }
     } catch (error) {
-      // 网络错误，更新消息状态
       commit('UPDATE_MESSAGE_STATUS', {
         conversationId,
-        tempId: tempMessage.id,
+        tempId: tempMessage._id,
         status: 'error'
       })
       

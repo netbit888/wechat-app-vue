@@ -16,13 +16,13 @@
     <!-- 消息列表区域 -->
     <main class="message-list" ref="messageListRef">
       <div class="message-container">
-        <!-- 时间分隔符 -->
-        <div class="time-divider">11:29</div>
+        <!-- 加载状态 -->
+        <div v-if="isLoading" class="loading-tip">加载中...</div>
         
         <!-- 消息列表 -->
         <div 
           v-for="message in currentMessages" 
-          :key="message.id"
+          :key="message._id"
           class="message-wrapper"
         >
           <!-- 系统提示消息（撤回） -->
@@ -32,11 +32,11 @@
           
           <!-- 对方消息：左侧头像 + 右侧白色气泡 -->
           <div 
-            v-else-if="message.senderId !== currentUser.id" 
+            v-else-if="!isMyMessage(message)" 
             class="message-item message-item-other"
           >
             <img 
-              :src="`https://picsum.photos/200/200?random=${message.senderId}`" 
+              :src="message.sender?.avatar || `https://picsum.photos/200/200?random=${message.sender?._id}`" 
               class="message-avatar"
               alt=""
             />
@@ -45,7 +45,7 @@
             </div>
           </div>
           
-          <!-- 自己消息：右侧头像 + 左侧绿色气泡 -->
+          <!-- 自己消息：左侧气泡 + 右侧头像 -->
           <div 
             v-else 
             class="message-item message-item-own"
@@ -53,9 +53,8 @@
             <div class="message-bubble message-bubble-own">
               {{ message.content }}
             </div>
-            <!-- 自己头像（新增） -->
             <img 
-              :src="`https://picsum.photos/200/200?random=${currentUser.id}`" 
+              :src="currentUser.avatar || `https://picsum.photos/200/200?random=${currentUser.id}`" 
               class="message-avatar-own"
               alt=""
             />
@@ -73,11 +72,12 @@
             type="text" 
             class="message-input" 
             placeholder="输入消息..."
+            v-model="inputContent"
             @keyup.enter="handleSendMessage"
           />
         </div>
         <button class="input-button emoji-button">😊</button>
-        <button class="input-button more-button">+</button>
+        <button class="input-button more-button" @click="handleSendMessage">发送</button>
       </div>
     </footer>
   </div>
@@ -86,8 +86,8 @@
 <script>
 import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useChatStore } from '@/composables/useStore'
-import { useUserStore } from '@/composables/useStore'
+import { useChatStore, useUserStore} from '@/composables/useStore'
+import { showToast } from '@/utils/feedback'
 
 export default {
   name: 'ChatDetail',
@@ -98,51 +98,58 @@ export default {
     const userStore = useUserStore()
     
     const messageListRef = ref(null)
+    const inputContent = ref('')
+    const isLoading = ref(false)
 
-    const conversationId = parseInt(route.params.id)
-    chatStore.selectConversation(conversationId)
+    const contactId = route.params.id
+    if (!contactId) {
+      showToast('无效的聊天对象')
+      router.back()
+      return
+    }
+    
+    // 获取当前用户信息
+    const currentUser = computed(() => userStore.currentUser || { id: 0 })
 
-    const currentConversation = computed(() => chatStore.currentConversation)
-    const currentMessages = computed(() => [
-      { id: 1, senderId: 2, content: '往下滑，很多张图片', time: '11:29', type: 'text' },
-      { id: 2, senderId: 1, content: 'Mars:\n嗯，看了，', time: '11:29', type: 'text' },
-      { id: 3, senderId: 1, content: '你撤回了一条消息', time: '11:29', type: 'system' },
-      { id: 4, senderId: 2, content: '新年快乐迎', time: '04:49', type: 'text' },
-      { id: 5, senderId: 2, content: '新年快乐酒', time: '04:49', type: 'text' },
-      { id: 6, senderId: 2, content: '玫防战宝\nCTFUARORG\n网络安全的本质是攻防对抗\n讲百遍不妞打一遍\n习近平', time: '04:49', type: 'text' },
-      { id: 7, senderId: 2, content: '我是顶级黑客\n个月后对你发起网络攻击\n不要攻击我呀', time: '04:49', type: 'text' }
-    ])
-    const currentUser = computed(() => ({ id: 1, name: 'Mars' }))
-
+    // 获取聊天对象信息
     const currentContact = computed(() => {
-      if (currentConversation.value) {
-        return {
-          id: currentConversation.value.id,
-          name: currentConversation.value.name || '朱龙春'
-        }
+      return chatStore.currentConversation || { 
+        id: contactId, 
+        name: '加载中...' 
       }
-      return { id: 2, name: '朱龙春' }
     })
+
+    // 从 Store 获取消息
+    const currentMessages = computed(() => {
+      return chatStore.getMessagesByConversationId(contactId) || []
+    })
+
+    // 判断消息是否是自己发的
+    const isMyMessage = (message) => {
+      const senderId = message.sender?._id || message.sender
+      return senderId === currentUser.value.id
+    }
 
     const goBack = () => {
       router.back()
     }
 
-    const handleSendMessage = (event) => {
-      const content = event.target.value
+    // 发送消息
+    const handleSendMessage = async () => {
+      const content = inputContent.value
       if (!content.trim()) return
       
-      chatStore.sendMessage({
-        conversationId,
-        content: content.trim(),
-        type: 'text'
-      })
-      
-      event.target.value = ''
-      
-      nextTick(() => {
-        scrollToBottom()
-      })
+      try {
+        await chatStore.sendMessage({
+          conversationId: contactId,
+          content: content.trim(),
+          type: 'text'
+        })
+        inputContent.value = ''
+        nextTick(scrollToBottom)
+      } catch (error) {
+        showToast('发送失败，请重试')
+      }
     }
 
     const scrollToBottom = () => {
@@ -151,12 +158,29 @@ export default {
       }
     }
 
+    // 监听消息变化自动滚动
     watch(currentMessages, () => {
       nextTick(scrollToBottom)
-    })
+    }, { deep: true })
 
-    onMounted(() => {
-      nextTick(scrollToBottom)
+    // 组件挂载时加载消息
+    onMounted(async () => {
+      isLoading.value = true
+      try {
+        await userStore.fetchCurrentUser()
+        await chatStore.fetchConversations()
+        chatStore.selectConversation(contactId)
+        
+        await chatStore.fetchMessages({
+          userId: currentUser.value.id,
+          contactId: contactId
+        })
+      } catch (error) {
+        console.error('加载失败:', error)
+        showToast('加载失败')
+      } finally {
+        isLoading.value = false
+      }
     })
 
     return {
@@ -164,6 +188,9 @@ export default {
       currentUser,
       currentMessages,
       messageListRef,
+      inputContent,
+      isLoading,
+      isMyMessage,
       goBack,
       handleSendMessage
     }
@@ -172,36 +199,21 @@ export default {
 </script>
 
 <style scoped>
-/* 微信标准色 */
-:root {
-  --wechat-primary: #07c160;
-  --wechat-bg: #ededed;
-  --wechat-bg-grey: #f5f5f5;
-  --wechat-border-light: #e5e5e5;
-  --wechat-text-primary: #000000;
-  --wechat-text-secondary: #999999;
-  --wechat-text-time: #b2b2b2;
-  --wechat-bubble-other: #ffffff;
-  --wechat-bubble-own: #95ec69;
-  --wechat-system: #b2b2b2;
-}
-
 .chat-detail-page {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--wechat-bg);
+  background-color: #ededed;
   overflow: hidden;
 }
 
-/* 聊天头部 - 高度48px */
 .chat-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 15px;
   background-color: white;
-  border-bottom: 1px solid var(--wechat-border-light);
+  border-bottom: 1px solid #e5e5e5;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -209,32 +221,20 @@ export default {
   box-sizing: border-box;
 }
 
-/* 左侧返回按钮区域 */
-.header-left {
-  flex-shrink: 0;
-}
-
-/* 中间标题区域 - 绝对居中 */
 .header-center {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* 联系人名称 - 16px */
 .contact-name {
   font-size: 16px;
-  color: var(--wechat-text-primary);
+  color: #000000;
   font-weight: 500;
   line-height: 1;
 }
 
-/* 右侧三个点按钮 - 20px */
-.header-right {
-  flex-shrink: 0;
-}
-
-.header-button {
+.back-button, .header-button {
   background: none;
   border: none;
   font-size: 20px;
@@ -245,24 +245,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--wechat-text-primary);
+  color: #000000;
 }
 
-/* 返回按钮 - 20px大小 */
-.back-button {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* 消息列表区域 */
 .message-list {
   flex: 1;
   overflow-y: auto;
@@ -271,67 +256,59 @@ export default {
   -webkit-overflow-scrolling: touch;
 }
 
-.message-container {
-  min-height: 100%;
+.loading-tip {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+  padding: 10px;
 }
 
-/* 时间分隔符 - 12px灰色 */
 .time-divider {
   text-align: center;
   font-size: 12px;
-  color: var(--wechat-text-time);
+  color: #b2b2b2;
   margin: 10px 0;
 }
 
-/* 系统消息（撤回提示） */
 .system-message {
   text-align: center;
   font-size: 13px;
-  color: var(--wechat-system);
+  color: #b2b2b2;
   margin: 10px 0;
-  padding: 2px 0;
 }
 
-/* 消息项 - 每条消息独立容器 */
 .message-wrapper {
   margin-bottom: 10px;
 }
 
-/* 对方消息 - 左头像，右气泡 */
 .message-item-other {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
 }
 
-/* 自己消息 - 左气泡，右头像（按用户要求修改） */
 .message-item-own {
   display: flex;
   justify-content: flex-end;
   align-items: flex-start;
 }
 
-/* 对方消息头像 - 40x40px圆角矩形 */
+.message-avatar, .message-avatar-own {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
 .message-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  object-fit: cover;
   margin-right: 10px;
-  flex-shrink: 0;
 }
 
-/* 自己消息头像 - 40x40px圆角矩形，在右侧 */
 .message-avatar-own {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  object-fit: cover;
-  margin-left: 10px; /* 左侧气泡，右侧头像 */
-  flex-shrink: 0;
+  margin-left: 10px;
 }
 
-/* 消息气泡 - 矩形（圆角4px） */
 .message-bubble {
   max-width: 60%;
   padding: 10px 12px;
@@ -340,29 +317,25 @@ export default {
   word-wrap: break-word;
   word-break: break-all;
   border-radius: 4px;
-  position: relative;
 }
 
-/* 对方消息气泡 - 白色矩形 */
 .message-bubble-other {
-  background-color: var(--wechat-bubble-other);
-  color: var(--wechat-text-primary);
+  background-color: #ffffff;
+  color: #000000;
 }
 
-/* 自己消息气泡 - 绿色矩形 */
 .message-bubble-own {
-  background-color: var(--wechat-bubble-own);
-  color: var(--wechat-text-primary);
+  background-color: #95ec69;
+  color: #000000;
 }
 
-/* 底部输入区域 - 高度56px */
 .input-area {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   background-color: white;
-  border-top: 1px solid var(--wechat-border-light);
+  border-top: 1px solid #e5e5e5;
   padding: 8px 0;
   z-index: 100;
 }
@@ -373,7 +346,6 @@ export default {
   padding: 0 12px;
 }
 
-/* 输入按钮 - 24x24px */
 .input-button {
   background: none;
   border: none;
@@ -385,7 +357,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--wechat-text-secondary);
+  color: #999999;
   flex-shrink: 0;
 }
 
@@ -399,9 +371,10 @@ export default {
 
 .more-button {
   margin-left: 8px;
+  color: #07c160;
+  font-weight: 500;
 }
 
-/* 输入框容器 */
 .input-container {
   flex: 1;
   display: flex;
@@ -410,7 +383,7 @@ export default {
 
 .message-input {
   width: 100%;
-  border: 1px solid var(--wechat-border-light);
+  border: 1px solid #e5e5e5;
   border-radius: 4px;
   padding: 8px 12px;
   font-size: 16px;
@@ -420,6 +393,6 @@ export default {
 }
 
 .message-input:focus {
-  border-color: var(--wechat-primary);
+  border-color: #07c160;
 }
 </style>
