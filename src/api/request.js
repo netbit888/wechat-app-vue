@@ -4,7 +4,7 @@ import { showToast } from '@/utils/feedback'
 
 // 创建axios实例
 const request = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.wechat.com/v1',  // 修改这里
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
