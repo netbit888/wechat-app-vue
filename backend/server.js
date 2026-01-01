@@ -8,7 +8,13 @@ import userRoutes from './routes/users.js';
 import chatRoutes from './routes/chat.js';
 import contactRoutes from './routes/contacts.js';
 
+// 1. 先加载环境变量
 dotenv.config();
+// 2. 再检查
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_random_string_here') {
+  console.error('❌ 警告: JWT_SECRET 未设置或使用了默认值，请修改 .env 文件');
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -64,7 +70,7 @@ app.use('/api/contacts', contactRoutes);
 
 // 404 处理
 app.use('*', (req, res) => {
-  res.status(404).json({ error: '接口不存在' });
+  res.status(404).json({ success: false, error: '接口不存在' });
 });
 
 app.listen(PORT, () => {

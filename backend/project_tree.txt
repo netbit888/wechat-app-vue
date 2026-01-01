@@ -8,6 +8,9 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   scan_project_tree.bat
 |   server.js
 |   
++---middleware
+|       auth.js
+|       
 +---models
 |       Message.js
 |       User.js
@@ -19,6 +22,18 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |       mime
 |   |       mime.cmd
 |   |       mime.ps1
+|   |       node-gyp-build
+|   |       node-gyp-build-optional
+|   |       node-gyp-build-optional.cmd
+|   |       node-gyp-build-optional.ps1
+|   |       node-gyp-build-test
+|   |       node-gyp-build-test.cmd
+|   |       node-gyp-build-test.ps1
+|   |       node-gyp-build.cmd
+|   |       node-gyp-build.ps1
+|   |       semver
+|   |       semver.cmd
+|   |       semver.ps1
 |   |       
 |   +---@mongodb-js
 |   |   \---saslprep
@@ -221,6 +236,70 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |       package.json
 |   |       README.md
 |   |       
+|   +---bcrypt
+|   |   |   .dockerignore
+|   |   |   .editorconfig
+|   |   |   bcrypt.js
+|   |   |   binding.gyp
+|   |   |   build-all.sh
+|   |   |   CHANGELOG.md
+|   |   |   Dockerfile
+|   |   |   Dockerfile-alpine
+|   |   |   ISSUE_TEMPLATE.md
+|   |   |   LICENSE
+|   |   |   Makefile
+|   |   |   package.json
+|   |   |   promises.js
+|   |   |   README.md
+|   |   |   SECURITY.md
+|   |   |   
+|   |   +---.github
+|   |   |   \---workflows
+|   |   |           build-pack-publish.yml
+|   |   |           ci.yaml
+|   |   |           
+|   |   +---examples
+|   |   |       async_compare.js
+|   |   |       forever_gen_salt.js
+|   |   |       
+|   |   +---prebuilds
+|   |   |   +---darwin-arm64
+|   |   |   |       bcrypt.node
+|   |   |   |       
+|   |   |   +---darwin-x64
+|   |   |   |       bcrypt.node
+|   |   |   |       
+|   |   |   +---linux-arm
+|   |   |   |       bcrypt.glibc.node
+|   |   |   |       bcrypt.musl.node
+|   |   |   |       
+|   |   |   +---linux-arm64
+|   |   |   |       bcrypt.glibc.node
+|   |   |   |       bcrypt.musl.node
+|   |   |   |       
+|   |   |   +---linux-x64
+|   |   |   |       bcrypt.glibc.node
+|   |   |   |       bcrypt.musl.node
+|   |   |   |       
+|   |   |   +---win32-arm64
+|   |   |   |       bcrypt.node
+|   |   |   |       
+|   |   |   \---win32-x64
+|   |   |           bcrypt.node
+|   |   |           
+|   |   +---src
+|   |   |       bcrypt.cc
+|   |   |       bcrypt_node.cc
+|   |   |       blowfish.cc
+|   |   |       node_blf.h
+|   |   |       
+|   |   \---test
+|   |           async.test.js
+|   |           implementation.test.js
+|   |           promise.test.js
+|   |           repetitions.test.js
+|   |           sync.test.js
+|   |           
 |   +---body-parser
 |   |   |   HISTORY.md
 |   |   |   index.js
@@ -306,6 +385,15 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |                   encoding-indexes.js
 |   |                   encoding.js
 |   |                   
+|   +---buffer-equal-constant-time
+|   |       .npmignore
+|   |       .travis.yml
+|   |       index.js
+|   |       LICENSE.txt
+|   |       package.json
+|   |       README.md
+|   |       test.js
+|   |       
 |   +---bytes
 |   |       History.md
 |   |       index.js
@@ -468,6 +556,17 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |           get.js
 |   |           index.js
 |   |           set.js
+|   |           
+|   +---ecdsa-sig-formatter
+|   |   |   CODEOWNERS
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---src
+|   |           ecdsa-sig-formatter.d.ts
+|   |           ecdsa-sig-formatter.js
+|   |           param-bytes-for-alg.js
 |   |           
 |   +---ee-first
 |   |       index.js
@@ -837,7 +936,96 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |           ipaddr.js
 |   |           ipaddr.js.d.ts
 |   |           
+|   +---jsonwebtoken
+|   |   |   decode.js
+|   |   |   index.js
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   sign.js
+|   |   |   verify.js
+|   |   |   
+|   |   +---lib
+|   |   |       asymmetricKeyDetailsSupported.js
+|   |   |       JsonWebTokenError.js
+|   |   |       NotBeforeError.js
+|   |   |       psSupported.js
+|   |   |       rsaPssKeyDetailsSupported.js
+|   |   |       timespan.js
+|   |   |       TokenExpiredError.js
+|   |   |       validateAsymmetricKey.js
+|   |   |       
+|   |   \---node_modules
+|   |       \---ms
+|   |               index.js
+|   |               license.md
+|   |               package.json
+|   |               readme.md
+|   |               
+|   +---jwa
+|   |       index.js
+|   |       LICENSE
+|   |       opslevel.yml
+|   |       package.json
+|   |       README.md
+|   |       
+|   +---jws
+|   |   |   CHANGELOG.md
+|   |   |   index.js
+|   |   |   LICENSE
+|   |   |   opslevel.yml
+|   |   |   package.json
+|   |   |   readme.md
+|   |   |   
+|   |   \---lib
+|   |           data-stream.js
+|   |           sign-stream.js
+|   |           tostring.js
+|   |           verify-stream.js
+|   |           
 |   +---kareem
+|   |       index.js
+|   |       LICENSE
+|   |       package.json
+|   |       README.md
+|   |       
+|   +---lodash.includes
+|   |       index.js
+|   |       LICENSE
+|   |       package.json
+|   |       README.md
+|   |       
+|   +---lodash.isboolean
+|   |       index.js
+|   |       LICENSE
+|   |       package.json
+|   |       README.md
+|   |       
+|   +---lodash.isinteger
+|   |       index.js
+|   |       LICENSE
+|   |       package.json
+|   |       README.md
+|   |       
+|   +---lodash.isnumber
+|   |       index.js
+|   |       LICENSE
+|   |       package.json
+|   |       README.md
+|   |       
+|   +---lodash.isplainobject
+|   |       index.js
+|   |       LICENSE
+|   |       package.json
+|   |       README.md
+|   |       
+|   +---lodash.isstring
+|   |       index.js
+|   |       LICENSE
+|   |       package.json
+|   |       README.md
+|   |       
+|   +---lodash.once
 |   |       index.js
 |   |       LICENSE
 |   |       package.json
@@ -1799,6 +1987,39 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |           language.js
 |   |           mediaType.js
 |   |           
+|   +---node-addon-api
+|   |   |   common.gypi
+|   |   |   except.gypi
+|   |   |   index.js
+|   |   |   LICENSE.md
+|   |   |   napi-inl.deprecated.h
+|   |   |   napi-inl.h
+|   |   |   napi.h
+|   |   |   node_addon_api.gyp
+|   |   |   node_api.gyp
+|   |   |   noexcept.gypi
+|   |   |   nothing.c
+|   |   |   package-support.json
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---tools
+|   |           check-napi.js
+|   |           clang-format.js
+|   |           conversion.js
+|   |           README.md
+|   |           
+|   +---node-gyp-build
+|   |       bin.js
+|   |       build-test.js
+|   |       index.js
+|   |       LICENSE
+|   |       node-gyp-build.js
+|   |       optional.js
+|   |       package.json
+|   |       README.md
+|   |       SECURITY.md
+|   |       
 |   +---object-assign
 |   |       index.js
 |   |       license
@@ -1943,6 +2164,70 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |       safer.js
 |   |       tests.js
 |   |       
+|   +---semver
+|   |   |   index.js
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   preload.js
+|   |   |   range.bnf
+|   |   |   README.md
+|   |   |   
+|   |   +---bin
+|   |   |       semver.js
+|   |   |       
+|   |   +---classes
+|   |   |       comparator.js
+|   |   |       index.js
+|   |   |       range.js
+|   |   |       semver.js
+|   |   |       
+|   |   +---functions
+|   |   |       clean.js
+|   |   |       cmp.js
+|   |   |       coerce.js
+|   |   |       compare-build.js
+|   |   |       compare-loose.js
+|   |   |       compare.js
+|   |   |       diff.js
+|   |   |       eq.js
+|   |   |       gt.js
+|   |   |       gte.js
+|   |   |       inc.js
+|   |   |       lt.js
+|   |   |       lte.js
+|   |   |       major.js
+|   |   |       minor.js
+|   |   |       neq.js
+|   |   |       parse.js
+|   |   |       patch.js
+|   |   |       prerelease.js
+|   |   |       rcompare.js
+|   |   |       rsort.js
+|   |   |       satisfies.js
+|   |   |       sort.js
+|   |   |       valid.js
+|   |   |       
+|   |   +---internal
+|   |   |       constants.js
+|   |   |       debug.js
+|   |   |       identifiers.js
+|   |   |       lrucache.js
+|   |   |       parse-options.js
+|   |   |       re.js
+|   |   |       
+|   |   \---ranges
+|   |           gtr.js
+|   |           intersects.js
+|   |           ltr.js
+|   |           max-satisfying.js
+|   |           min-satisfying.js
+|   |           min-version.js
+|   |           outside.js
+|   |           simplify.js
+|   |           subset.js
+|   |           to-comparators.js
+|   |           valid.js
+|   |           
 |   +---send
 |   |   |   HISTORY.md
 |   |   |   index.js
@@ -2308,9 +2593,12 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |               utils.js
 |               VoidFunction.js
 |               
-\---routes
-        chat.js
-        contacts.js
-        test.js
-        users.js
++---routes
+|       chat.js
+|       contacts.js
+|       test.js
+|       users.js
+|       
+\---utils
+        jwt.js
         
