@@ -1,0 +1,26 @@
+{
+  "name": "wechat-app-vue",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "animate.css": "^4.1.1",
+    "axios": "^1.4.0",
+    "pinia": "^2.1.0",
+    "pinyin-pro": "^3.27.0",
+    "vue": "^3.3.0",
+    "vue-router": "^4.2.0",
+    "vuex": "^4.1.0",
+    "weui": "^2.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.0",
+    "less": "^4.5.1",
+    "less-loader": "^12.3.0",
+    "vite": "^4.3.0"
+  }
+}
