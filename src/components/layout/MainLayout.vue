@@ -36,7 +36,7 @@ export default {
       tabs: [
         {
           name: 'WeChat',
-          path: '/chat',
+          path: '/wechat',
           label: '微信',
           icon: '💬',
           badge: 0
@@ -68,7 +68,7 @@ export default {
   computed: {
     showTabBar() {
       // 在这些路径下显示底部导航栏
-      const tabBarPaths = ['/chat', '/contact', '/discover', '/me']
+      const tabBarPaths = ['/wechat', '/contact', '/discover', '/me']
       return tabBarPaths.some(path => this.$route.path.startsWith(path))
     }
   },
