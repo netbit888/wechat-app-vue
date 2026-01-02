@@ -28,7 +28,7 @@ router.get('/messages/:userId/:contactId', async (req, res) => {
 
     res.json({ 
       success: true, 
-      messages  // 注意字段名统一用 messages
+      data: messages
     });
 
   } catch (error) {
@@ -58,7 +58,7 @@ router.post('/send', async (req, res) => {
 
     res.json({ 
       success: true, 
-      data: message  // 返回完整的消息对象
+      data: message
     });
 
   } catch (error) {

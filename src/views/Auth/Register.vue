@@ -188,13 +188,11 @@ const handleRegister = async () => {
       console.log('注册响应:', response);
     }
 
-    // ✅ 安全校验
-    if (response?.success && response?.token) {
-      // 存储数据
+    // 安全校验
+    if (response?.token) {
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user || {}));
       
-      // 更新Vuex
       store.commit('user/SET_TOKEN', response.token);
       store.commit('user/SET_USER', response.user);
       
@@ -204,7 +202,7 @@ const handleRegister = async () => {
         router.replace('/wechat');
       }, 500);
     } else {
-      throw new Error(response?.error || '注册失败');
+      throw new Error(response?.error || '注册信息缺失');
     }
   } catch (err) {
     const errorMsg = err?.message || '注册失败';

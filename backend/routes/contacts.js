@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
       { id: 1, name: '张三', avatar: 'avatar1.jpg', lastMessage: '你好！', time: '10:00' },
       { id: 2, name: '李四', avatar: 'avatar2.jpg', lastMessage: '晚上吃饭吗？', time: '09:30' }
     ];
-    res.json({ success: true, contacts });
+    res.json({ success: true, data: contacts });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

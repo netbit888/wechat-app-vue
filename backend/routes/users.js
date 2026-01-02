@@ -32,13 +32,9 @@ router.post('/register', async (req, res) => {
     await user.save();
     
     const token = generateToken(user._id);
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      token,
-      user: { 
-        id: user._id, 
-        nickname: user.nickname 
-      }
+      data: { token, user: { id: user._id, nickname: user.nickname } }
     });
   } catch (error) {
     // ✅ 处理 MongoDB 唯一键错误
@@ -71,10 +67,9 @@ router.post('/login', async (req, res) => {
     await user.save();
     
     const token = generateToken(user._id);
-    res.json({ 
-      success: true, 
-      token, 
-      user: { id: user._id, nickname: user.nickname } 
+    return res.json({
+      success: true,
+      data: { token, user: { id: user._id, nickname: user.nickname } }
     });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -84,7 +79,7 @@ router.post('/login', async (req, res) => {
 // 获取个人信息
 router.get('/profile', protect, async (req, res) => {
   const user = await User.findById(req.userId).select('-password');
-  res.json({ success: true, user });
+  res.json({ success: true, data: user });
 });
 
 export default router;

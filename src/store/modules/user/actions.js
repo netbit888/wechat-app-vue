@@ -32,37 +32,53 @@ export default {
   async login({ commit }, credentials) {
     try {
       const response = await userApi.login(credentials);
-      // response 已经是 response.data（拦截器处理过）
+
+      // 保护：确保 response 是对象且包含 token/user
+      if (!response || typeof response !== 'object') {
+        throw new Error('网络异常：未获取到登录信息');
+      }
+      if (!response.token || !response.user) {
+        throw new Error(response.error || '登录信息缺失');
+      }
+
       const { token, user } = response;
-      
+
       // 保存到本地存储
       storage.set('token', token, 24); // 24小时
       storage.set('user', user);
-      
+
       // 提交到 store
       commit('SET_TOKEN', token);
       commit('SET_USER', user);
-      
+
       showToast('登录成功', 'success');
       return response;
     } catch (error) {
-      // 错误已在拦截器中提示
+      // 把具体错误继续抛给组件
       throw error;
     }
   },
-  
-  // 新增：注册
+
+  // 注册
   async register({ commit }, userData) {
     try {
       const response = await userApi.register(userData);
+
+      if (!response || typeof response !== 'object') {
+        throw new Error('网络异常：未获取到注册信息');
+      }
+      if (!response.token || !response.user) {
+        throw new Error(response.error || '注册信息缺失');
+      }
+
       const { token, user } = response;
 
       storage.set('token', token, 24);
       storage.set('user', user);
-      
+
       commit('SET_TOKEN', token);
       commit('SET_USER', user);
-      
+
       showToast('注册成功', 'success');
       return response;
     } catch (error) {
@@ -74,7 +90,7 @@ export default {
   async autoLogin({ commit }) {
     const token = storage.get('token');
     const user = storage.get('user');
-    
+
     if (token && user) {
       commit('SET_TOKEN', token);
       commit('SET_USER', user);
@@ -82,7 +98,7 @@ export default {
     }
     return false;
   },
-  
+
   // 登出
   logout({ commit }) {
     storage.remove('token');
@@ -90,11 +106,11 @@ export default {
     commit('LOGOUT');
     showToast('已退出登录', 'info');
   },
-  
+
   // 获取个人资料
   async getProfile({ commit }) {
     try {
-      const user = await userApi.getProfile(); // 返回已是 data
+      const user = await userApi.getProfile();
       commit('SET_USER', user);
       storage.set('user', user);
       return user;
