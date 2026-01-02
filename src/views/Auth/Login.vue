@@ -1,164 +1,357 @@
+<!-- 微信登录页 - 仅保留核心功能 -->
 <template>
-  <div class="login-page">
-    <div class="login-container">
-      <h2>微信登录</h2>
-      <form @submit.prevent="handleLogin">
-        <div class="input-group">
-          <input 
-            v-model="loginForm.username" 
-            type="text" 
-            placeholder="用户名" 
-            required
-          >
+  <div class="login-container">
+    <!-- 状态栏占位 -->
+    <div class="status-bar"></div>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+      <!-- Logo -->
+      <div class="logo-section">
+        <div class="wechat-logo">
+          <svg class="wechat-icon" viewBox="0 0 64 64" fill="currentColor">
+            <path d="M32 2C15.432 2 2 15.432 2 32s13.432 30 30 30 30-13.432 30-30S48.568 2 32 2zm24.337 39.93c.059.175.093.364.093.564 0 .78-.632 1.412-1.412 1.412H31.765c-.78 0-1.412-.632-1.412-1.412V31.765c0-.78.632-1.412 1.412-1.412h23.253c.78 0 1.412.632 1.412 1.412v8.165z"/>
+          </svg>
         </div>
-        <div class="input-group">
-          <input 
-            v-model="loginForm.password" 
-            type="password" 
-            placeholder="密码" 
-            required
+        <h1 class="app-title">微信</h1>
+      </div>
+
+      <!-- 登录表单 -->
+      <div class="form-section">
+        <!-- 用户名输入 -->
+        <div class="input-wrapper">
+          <input
+            v-model="form.username"
+            type="text"
+            class="input-field"
+            placeholder="请输入用户名"
+            maxlength="20"
+            @focus="onFocus"
+            @blur="onBlur"
           >
+          <span v-if="form.username" class="clear-btn" @click="form.username = ''">✕</span>
         </div>
-        <button type="submit" :disabled="loading" class="login-button">
-          {{ loading ? '登录中...' : '登录' }}
+
+        <!-- 密码输入 -->
+        <div class="input-wrapper">
+          <input
+            v-model="form.password"
+            :type="showPassword ? 'text' : 'password'"
+            class="input-field"
+            placeholder="请输入密码"
+            maxlength="20"
+            @keypress.enter="handleLogin"
+            @focus="onFocus"
+            @blur="onBlur"
+          >
+          <span class="eye-btn" @click="showPassword = !showPassword">
+            {{ showPassword ? '🙈' : '👁️' }}
+          </span>
+        </div>
+
+        <!-- 登录按钮 -->
+        <button
+          class="login-btn"
+          :class="{ active: canLogin && !loading, pressed: buttonPressed }"
+          :disabled="!canLogin || loading"
+          @click="handleLogin"
+          @touchstart="onButtonPress"
+          @touchend="onButtonRelease"
+        >
+          <span class="btn-text">{{ loading ? '登录中...' : '登录' }}</span>
+          <div v-if="loading" class="loading-spinner"></div>
         </button>
-      </form>
-      
-      <div class="demo-accounts">
-        <h3>测试账号</h3>
-        <p>用户名: admin</p>
-        <p>密码: 123456</p>
+
+        <!-- 辅助选项 -->
+        <div class="form-options">
+          <a class="link-text" @click="handleFindPassword">找回密码</a>
+          <a class="link-text" @click="goToRegister">注册</a>
+        </div>
       </div>
     </div>
+
+    <!-- 错误提示 -->
+    <div v-if="error" class="error-toast">{{ error }}</div>
   </div>
 </template>
 
-<script>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/store/modules/user'
-import { showToast } from '@/utils/feedback'
+<script setup>
+import { ref, reactive, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useStore } from 'vuex';
+import { showToast } from '@/utils/feedback.js';
 
-export default {
-  name: 'Login',
-  setup() {
-    const router = useRouter()
-    const userStore = useUserStore()
+const router = useRouter();
+const store = useStore();
+
+const form = reactive({
+  username: '',
+  password: ''
+});
+
+const loading = ref(false);
+const showPassword = ref(false);
+const buttonPressed = ref(false);
+
+// 登录按钮状态
+const canLogin = computed(() => {
+  return form.username.length >= 4 && form.password.length >= 6;
+});
+
+// 输入框焦点效果
+const onFocus = (e) => {
+  e.target.parentElement.classList.add('focused');
+};
+
+const onBlur = (e) => {
+  e.target.parentElement.classList.remove('focused');
+};
+
+// 按钮按压效果
+const onButtonPress = () => {
+  buttonPressed.value = true;
+};
+
+const onButtonRelease = () => {
+  setTimeout(() => {
+    buttonPressed.value = false;
+  }, 100);
+};
+
+// 处理登录
+const handleLogin = async () => {
+  if (!canLogin.value) return;
+
+  loading.value = true;
+  try {
+    const result = await store.dispatch('user/login', form);
     
-    const loginForm = ref({
-      username: '',
-      password: ''
-    })
-    
-    const loading = ref(false)
-
-    const handleLogin = async () => {
-      if (!loginForm.value.username || !loginForm.value.password) {
-        showToast('请输入用户名和密码', 'error')
-        return
-      }
-
-      loading.value = true
-
-      try {
-        await userStore.login(loginForm.value)
-        router.push('/chat')
-      } catch (error) {
-        console.error('登录失败:', error)
-      } finally {
-        loading.value = false
-      }
+    if (import.meta.env.DEV) {
+      console.log('登录响应:', result);
     }
 
-    return {
-      loginForm,
-      loading,
-      handleLogin
+    if (result?.token) {
+      // 双重保险存储
+      localStorage.setItem('token', result.token);
+      localStorage.setItem('user', JSON.stringify(result.user || {}));
+      
+      showToast('登录成功', 'success');
+      
+      setTimeout(() => {
+        router.replace('/wechat');
+      }, 300);
+    } else {
+      throw new Error('token获取失败');
     }
+  } catch (err) {
+    const errorMsg = err?.message || '登录失败';
+    showToast(errorMsg, 'error');
+    
+    if (import.meta.env.DEV) {
+      console.error('登录错误:', err);
+    }
+  } finally {
+    loading.value = false;
   }
-}
+};
+
+// 跳转到注册
+const goToRegister = () => {
+  router.push('/auth/register');
+};
+
+// 找回密码
+const handleFindPassword = () => {
+  showToast('找回密码功能开发中', 'info');
+};
 </script>
 
 <style scoped>
-.login-page {
-  height: 100vh;
+.login-container {
+  min-height: 100vh;
+  background: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Helvetica Neue', sans-serif;
+}
+
+/* 状态栏占位 */
+.status-bar {
+  height: constant(safe-area-inset-top);
+  height: env(safe-area-inset-top);
+  background: #000000;
+}
+
+/* 主内容区 */
+.main-content {
+  flex: 1;
+  padding: 0 32px;
+  margin-top: 80px; /* 增加顶部间距，使界面更居中 */
+}
+
+/* Logo区域 */
+.logo-section {
+  text-align: center;
+  margin-bottom: 56px;
+}
+
+.wechat-logo {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 12px;
+  background: #07c160;
+  border-radius: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #07c160 0%, #06ae56 100%);
 }
 
-.login-container {
-  background: white;
-  padding: 40px;
-  border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  width: 90%;
-  max-width: 400px;
+.wechat-icon {
+  width: 48px;
+  height: 48px;
+  color: #ffffff;
 }
 
-h2 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #333;
+.app-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #000000;
+  margin: 0;
+  letter-spacing: 2px;
 }
 
-.input-group {
-  margin-bottom: 20px;
+/* 表单区域 */
+.form-section {
+  margin-bottom: 0; /* 移除底部间距 */
 }
 
-input {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 16px;
-  outline: none;
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e5e5e5;
   transition: border-color 0.3s;
 }
 
-input:focus {
-  border-color: #07c160;
+.input-wrapper.focused {
+  border-bottom: 1px solid #07c160;
 }
 
-.login-button {
-  width: 100%;
-  padding: 12px;
-  background-color: #07c160;
-  color: white;
+.input-field {
+  flex: 1;
+  height: 48px;
   border: none;
-  border-radius: 6px;
+  outline: none;
   font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  color: #000000;
+  padding: 0 40px 0 0;
+  background: transparent;
 }
 
-.login-button:hover:not(:disabled) {
-  background-color: #06ae56;
+.input-field::placeholder {
+  color: #b2b2b2;
+  font-size: 16px;
 }
 
-.login-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.demo-accounts {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f5f5f5;
-  border-radius: 6px;
-  text-align: center;
-}
-
-.demo-accounts h3 {
-  margin-bottom: 10px;
-  color: #666;
-  font-size: 14px;
-}
-
-.demo-accounts p {
-  margin: 5px 0;
+/* 清除按钮 */
+.clear-btn {
+  position: absolute;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e5e5;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 12px;
-  color: #888;
+  cursor: pointer;
+}
+
+/* 密码可见按钮 */
+.eye-btn {
+  position: absolute;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b2b2b2;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* 登录按钮 */
+.login-btn {
+  width: 100%;
+  height: 48px;
+  margin-top: 32px;
+  background: #07c160;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.2s;
+}
+
+.login-btn.active {
+  opacity: 1;
+}
+
+.login-btn.active:hover {
+  background: #06ad56;
+}
+
+.login-btn.active.pressed {
+  transform: scale(0.98);
+  background: #05a04a;
+}
+
+.btn-text {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ffffff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 表单选项 */
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.link-text {
+  color: #576b95;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.link-text:active {
+  opacity: 0.6;
+}
+
+/* 响应式 */
+@media (max-width: 375px) {
+  .main-content {
+    padding: 0 24px;
+  }
 }
 </style>

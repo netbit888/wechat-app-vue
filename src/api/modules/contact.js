@@ -1,33 +1,23 @@
-import { http } from '../request'
+// src/api/modules/contact.js
+import { http } from '../request.js';
 
-// 联系人相关API
-export const contactApi = {
+export default {
   // 获取联系人列表
-  getContacts: (params = {}) => http.get('/contacts', params),
+  getList: () => http.get('/contacts/list'),
   
   // 搜索联系人
-  searchContacts: (keyword, params = {}) => 
-    http.get('/contacts/search', { keyword, ...params }),
+  search: (keyword) => http.get('/contacts/search', { keyword }),
   
-  // 获取联系人详情
-  getContactDetail: (contactId) => http.get(`/contacts/${contactId}`),
+  // 添加好友
+  add: (userId) => http.post('/contacts/add', { userId }),
   
-  // 添加联系人
-  addContact: (contactData) => http.post('/contacts', contactData),
+  // 删除好友
+  delete: (userId) => http.delete('/contacts/' + userId),
   
-  // 更新联系人
-  updateContact: (contactId, contactData) => 
-    http.put(`/contacts/${contactId}`, contactData),
-  
-  // 删除联系人
-  deleteContact: (contactId) => http.delete(`/contacts/${contactId}`),
+  // 获取好友请求
+  getRequests: () => http.get('/contacts/requests'),
   
   // 处理好友请求
-  handleFriendRequest: (requestId, action) => 
-    http.put(`/contacts/requests/${requestId}`, { action }),
-  
-  // 获取好友请求列表
-  getFriendRequests: () => http.get('/contacts/requests')
-}
-
-export default contactApi
+  handleRequest: (requestId, action) => 
+    http.post('/contacts/handle', { requestId, action })
+};

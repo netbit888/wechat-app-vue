@@ -1,36 +1,16 @@
-import { http } from '../request'
+// src/api/modules/chat.js
+import { http } from '../request.js';
 
-// 聊天相关API
-export const chatApi = {
-  // 获取聊天列表
-  getConversations: (params = {}) => http.get('/chat/conversations', params),
+export default {
+  // 获取会话列表
+  getConversations: () => http.get('/chat/conversations'),
   
-  // 获取聊天记录
-  getMessages: (conversationId, params = {}) => 
-    http.get(`/chat/messages/${userId}/${contactId}`),
+  // 获取消息历史
+  getMessages: (userId, before) => http.get('/chat/messages', { userId, before }),
   
   // 发送消息
-  sendMessage: (messageData) => 
-    http.post('/chat/send', messageData),
+  sendMessage: (data) => http.post('/chat/send', data),
   
-  // 删除消息
-  deleteMessage: (conversationId, messageId) => 
-    http.delete(`/chat/conversations/${conversationId}/messages/${messageId}`),
-  
-  // 创建聊天会话
-  createConversation: (participants) => 
-    http.post('/chat/conversations', { participants }),
-  
-  // 删除聊天会话
-  deleteConversation: (conversationId) => 
-    http.delete(`/chat/conversations/${conversationId}`),
-  
-  // 标记消息已读
-  markAsRead: (conversationId, messageId) => 
-    http.put(`/chat/conversations/${conversationId}/messages/${messageId}/read`),
-  
-  // 获取未读消息数
-  getUnreadCount: () => http.get('/chat/unread-count')
-}
-
-export default chatApi
+  // 标记已读
+  markRead: (userId) => http.patch('/chat/read/' + userId)
+};

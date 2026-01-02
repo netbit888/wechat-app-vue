@@ -112,6 +112,7 @@ D:\MOBILE\WECHAT-APP-VUE\SRC
 |   |       index.js
 |   |       
 |   \---routes
+|           auth.js
 |           chat.js
 |           contact.js
 |           discover.js
@@ -158,6 +159,7 @@ D:\MOBILE\WECHAT-APP-VUE\SRC
     |   
     +---Auth
     |       Login.vue
+    |       Register.vue
     |       
     +---Contact
     |       ContactDetail.vue

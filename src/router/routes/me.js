@@ -3,17 +3,20 @@ const routes = [
   {
     path: '/me',
     name: 'Me',
-    component: () => import('@/views/Me/Profile.vue')
+    component: () => import('@/views/Me/Profile.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/settings',
     name: 'Settings',
-    component: () => import('@/views/Me/Settings.vue')
+    component: () => import('@/views/Me/Settings.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/me/wallet',
     name: 'Wallet',
-    component: () => import('@/views/Me/Wallet.vue')
+    component: () => import('@/views/Me/Wallet.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

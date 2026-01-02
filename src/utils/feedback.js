@@ -1,20 +1,37 @@
 // 用户反馈工具函数
 export const showToast = (message, type = 'info', duration = 3000) => {
-  // 这里可以集成UI框架的Toast组件
-  console.log(`[${type.toUpperCase()}] ${message}`)
+  // ✅ 严格安全检查
+  if (message === null || message === undefined) {
+    message = '未知错误';
+  } else if (typeof message === 'object') {
+    // 如果是错误对象，优先提取错误信息
+    message = message.message || message.error || 
+              (message.data?.message) || (message.data?.error) || 
+              JSON.stringify(message);
+  }
   
-  // 简单的浏览器通知实现
+  // 确保 message 是字符串
+  const displayMessage = String(message);
+  
+  console.log(`[${type.toUpperCase()}] ${displayMessage}`)
+  
   if (type === 'error') {
-    alert(`错误: ${message}`)
+    alert(`错误: ${displayMessage}`)
+  } else if (type === 'success') {
+    // 使用手机原生提示或轻量 toast
+    alert(`成功: ${displayMessage}`)
   }
 }
 
 export const showLoading = (message = '加载中...') => {
   console.log(`[LOADING] ${message}`)
-  // 可以集成加载中组件
   return () => console.log('[LOADING] 关闭加载')
 }
 
 export const showConfirm = (message, title = '提示') => {
-  return confirm(`${title}: ${message}`)
+  const displayMessage = typeof message === 'object' ? 
+    (message.message || JSON.stringify(message)) : 
+    String(message);
+    
+  return confirm(`${title}: ${displayMessage}`)
 }

@@ -1,16 +1,15 @@
-// 聊天相关路由
-const routes = [
+// src/router/routes/chat.js
+export default [
   {
-    path: '/chat',
-    name: 'ChatList',
-    component: () => import('@/views/WeChat/ChatList.vue')
+    path: '/wechat',
+    name: 'WeChat',
+    component: () => import('@/views/WeChat/ChatList.vue'),
+    meta: { requiresAuth: true }
   },
   {
-    path: '/chat/:id', // 动态路由，用于聊天详情页
+    path: '/wechat/chat/:id',
     name: 'ChatDetail',
     component: () => import('@/views/WeChat/ChatDetail.vue'),
-    props: true // 将路由参数作为 props 传递给组件
+    meta: { requiresAuth: true }
   }
-]
-
-export default routes
+];

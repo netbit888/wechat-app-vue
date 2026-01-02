@@ -2,6 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path'; // ✅ 新增：用于文件路径处理
+import { fileURLToPath } from 'url'; // ✅ 新增：ESM 模块中获取 __dirname
 
 // 导入路由
 import userRoutes from './routes/users.js';
@@ -10,35 +12,64 @@ import contactRoutes from './routes/contacts.js';
 
 // 1. 先加载环境变量
 dotenv.config();
-// 2. 再检查
+
+// 2. JWT 检查
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'your_random_string_here') {
-  console.error('❌ 警告: JWT_SECRET 未设置或使用了默认值，请修改 .env 文件');
+  console.error('❌ 警告: JWT_SECRET 未设置或使用了默认值');
   process.exit(1);
 }
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ==================== CORS 配置（关键！）====================
+const allowedOrigins = process.env.CLIENT_URLS 
+  ? process.env.CLIENT_URLS.split(',').map(url => url.trim())
+  : ['http://localhost:5173'];
+
+console.log('✅ 允许的客户端域名:', allowedOrigins);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) {
+      console.log('⚠️ 请求无 origin，已允许');
+      return callback(null, true);
+    }
+    if (allowedOrigins.includes(origin)) {
+      console.log(`✅ CORS 通过: ${origin}`);
+      callback(null, true);
+    } else {
+      console.warn(`❌ CORS 拒绝: ${origin}`);
+      callback(new Error(`不允许的域名: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],
+  exposedHeaders: ['set-cookie'],
+}));
+
 // 中间件
-app.use(cors());
 app.use(express.json());
 
-// ✅ 连接 MongoDB（关键！）
+// ✅ 连接 MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wechat')
   .then(() => console.log('✅ MongoDB连接成功'))
   .catch(err => console.error('❌ MongoDB连接失败:', err));
 
-// 健康检查（增加DB状态）
+// 健康检查
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: '后端服务运行正常', 
     timestamp: new Date(),
-    dbStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    dbStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    corsEnabled: true,
+    allowedOrigins
   });
 });
 
-// 添加简单测试路由（用于前后端连通测试）
+// 测试路由
 app.get('/api/test', async (req, res) => {
   try {
     const TestModel = mongoose.model('Test', new mongoose.Schema({
@@ -63,14 +94,44 @@ app.post('/api/test', async (req, res) => {
   }
 });
 
-// 使用你的业务路由
+// ==================== 业务路由（必须放在SPA Fallback之前）====================
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/contacts', contactRoutes);
 
-// 404 处理
-app.use('*', (req, res) => {
+// ==================== SPA Fallback 处理（关键修复！）====================
+// 作用：让前端路由（如/auth/login）刷新时能正确加载 Vue 应用
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+app.get('*', (req, res, next) => {
+  // 只处理 GET 请求，确保 POST/PUT/DELETE 等 API 请求能正确走到下面的 404 JSON
+  if (req.method === 'GET') {
+    // 假设 dist 文件夹在 backend 的上一级目录
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  } else {
+    next(); // 非 GET 请求继续向下走
+  }
+});
+
+// ==================== API 404 处理（仅对未匹配的API请求）====================
+app.use((req, res) => {
   res.status(404).json({ success: false, error: '接口不存在' });
+});
+
+// ==================== 全局错误处理中间件 ====================
+app.use((err, req, res, next) => {
+  console.error('❌ 服务器错误:', err.message);
+  
+  if (err.message.includes('不允许的域名')) {
+    return res.status(403).json({ 
+      success: false, 
+      error: 'CORS 拒绝：该域名未在白名单中' 
+    });
+  }
+  
+  res.status(500).json({ 
+    success: false, 
+    error: import.meta.env.DEV ? err.message : '服务器内部错误' 
+  });
 });
 
 app.listen(PORT, () => {

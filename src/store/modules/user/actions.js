@@ -1,145 +1,105 @@
-import { userApi } from '@/api'
-import storage, { STORAGE_KEYS } from '@/utils/storage'
-import { showToast } from '@/utils/feedback'
+// src/store/modules/user/actions.js
+import { userApi } from '@/api/index.js';
+import { showToast } from '@/utils/feedback.js';
+
+// 本地存储工具（简洁版）
+const storage = {
+  set(key, value, expireHours = null) {
+    const data = { value, expire: expireHours ? Date.now() + expireHours * 3600000 : null };
+    localStorage.setItem(key, JSON.stringify(data));
+  },
+  get(key) {
+    const data = localStorage.getItem(key);
+    if (!data) return null;
+    try {
+      const { value, expire } = JSON.parse(data);
+      if (expire && Date.now() > expire) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      return value;
+    } catch {
+      return null;
+    }
+  },
+  remove(key) {
+    localStorage.removeItem(key);
+  }
+};
 
 export default {
-  // 用户登录
+  // 登录
   async login({ commit }, credentials) {
     try {
-      const response = await userApi.login(credentials)
+      const response = await userApi.login(credentials);
+      // response 已经是 response.data（拦截器处理过）
+      const { token, user } = response;
       
-      if (response.code === 0 && response.data) {
-        const { token, user } = response.data
-        
-        // 保存到本地存储
-        storage.set(STORAGE_KEYS.USER_TOKEN, token, 24 * 60 * 60) // 24小时过期
-        storage.set(STORAGE_KEYS.USER_INFO, user)
-        
-        // 提交到store
-        commit('SET_TOKEN', token)
-        commit('SET_USER_INFO', user)
-        commit('SET_LOGIN_STATUS', true)
-        
-        showToast('登录成功', 'success')
-        return Promise.resolve(response.data)
-      } else {
-        showToast(response.message || '登录失败', 'error')
-        return Promise.reject(new Error(response.message))
-      }
+      // 保存到本地存储
+      storage.set('token', token, 24); // 24小时
+      storage.set('user', user);
+      
+      // 提交到 store
+      commit('SET_TOKEN', token);
+      commit('SET_USER', user);
+      
+      showToast('登录成功', 'success');
+      return response;
     } catch (error) {
-      showToast('登录失败，请检查网络连接', 'error')
-      return Promise.reject(error)
+      // 错误已在拦截器中提示
+      throw error;
     }
   },
   
-  // 自动登录（从本地存储恢复）
-  async autoLogin({ commit, dispatch }) {
-    const token = storage.get(STORAGE_KEYS.USER_TOKEN)
-    const userInfo = storage.get(STORAGE_KEYS.USER_INFO)
+  // 新增：注册
+  async register({ commit }, userData) {
+    try {
+      const response = await userApi.register(userData);
+      const { token, user } = response;
+
+      storage.set('token', token, 24);
+      storage.set('user', user);
+      
+      commit('SET_TOKEN', token);
+      commit('SET_USER', user);
+      
+      showToast('注册成功', 'success');
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // 自动登录
+  async autoLogin({ commit }) {
+    const token = storage.get('token');
+    const user = storage.get('user');
     
-    if (token && userInfo) {
-      commit('SET_TOKEN', token)
-      commit('SET_USER_INFO', userInfo)
-      commit('SET_LOGIN_STATUS', true)
-      
-      // 验证token是否有效
-      try {
-        await dispatch('validateToken')
-        showToast('自动登录成功', 'success')
-        return true
-      } catch (error) {
-        // token无效，清除本地存储
-        storage.remove(STORAGE_KEYS.USER_TOKEN)
-        storage.remove(STORAGE_KEYS.USER_INFO)
-        commit('LOGOUT')
-        return false
-      }
+    if (token && user) {
+      commit('SET_TOKEN', token);
+      commit('SET_USER', user);
+      return true;
     }
-    return false
+    return false;
   },
   
-  // 验证token有效性
-  async validateToken({ state }) {
-    if (!state.token) {
-      return Promise.reject(new Error('未找到token'))
-    }
-    
-    try {
-      const response = await userApi.getProfile()
-      return Promise.resolve(response)
-    } catch (error) {
-      return Promise.reject(error)
-    }
+  // 登出
+  logout({ commit }) {
+    storage.remove('token');
+    storage.remove('user');
+    commit('LOGOUT');
+    showToast('已退出登录', 'info');
   },
   
-  // 更新用户信息
-  async updateProfile({ commit, state }, profileData) {
+  // 获取个人资料
+  async getProfile({ commit }) {
     try {
-      const response = await userApi.updateProfile(profileData)
-      
-      if (response.code === 0) {
-        const updatedUser = { ...state.currentUser, ...profileData }
-        
-        // 更新本地存储
-        storage.set(STORAGE_KEYS.USER_INFO, updatedUser)
-        
-        // 提交到store
-        commit('SET_USER_INFO', updatedUser)
-        showToast('个人信息更新成功', 'success')
-        
-        return Promise.resolve(response.data)
-      } else {
-        showToast(response.message || '更新失败', 'error')
-        return Promise.reject(new Error(response.message))
-      }
+      const user = await userApi.getProfile(); // 返回已是 data
+      commit('SET_USER', user);
+      storage.set('user', user);
+      return user;
     } catch (error) {
-      showToast('更新失败，请稍后重试', 'error')
-      return Promise.reject(error)
-    }
-  },
-  
-  // 退出登录
-  async logout({ commit }) {
-    try {
-      await userApi.logout()
-    } catch (error) {
-      // 即使API调用失败也要继续执行本地清理
-      console.warn('退出登录API调用失败:', error)
-    } finally {
-      // 清除本地存储
-      storage.remove(STORAGE_KEYS.USER_TOKEN)
-      storage.remove(STORAGE_KEYS.USER_INFO)
-      
-      // 提交到store
-      commit('LOGOUT')
-      
-      showToast('已退出登录', 'info')
-    }
-  },
-  
-  // 更新用户设置
-  async updateSettings({ commit, state }, settings) {
-    try {
-      const response = await userApi.updateSettings(settings)
-      
-      if (response.code === 0) {
-        const updatedSettings = { ...state.settings, ...settings }
-        
-        // 更新本地存储
-        storage.set(STORAGE_KEYS.USER_SETTINGS, updatedSettings)
-        
-        // 提交到store
-        commit('UPDATE_SETTINGS', updatedSettings)
-        showToast('设置更新成功', 'success')
-        
-        return Promise.resolve(response.data)
-      } else {
-        showToast(response.message || '设置更新失败', 'error')
-        return Promise.reject(new Error(response.message))
-      }
-    } catch (error) {
-      showToast('设置更新失败，请稍后重试', 'error')
-      return Promise.reject(error)
+      throw error;
     }
   }
-}
+};
