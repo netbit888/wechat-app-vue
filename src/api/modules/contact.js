@@ -2,8 +2,8 @@
 import { http } from '../request.js';
 
 export default {
-  // 获取联系人列表
-  getList: () => http.get('/contacts/list'),
+  // 获取联系人列表（真实后端）
+  getList: () => http.get('/contacts'),
   
   // 搜索联系人
   search: (keyword) => http.get('/contacts/search', { keyword }),

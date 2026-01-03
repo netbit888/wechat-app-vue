@@ -88,10 +88,13 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useChatStore, useUserStore} from '@/composables/useStore'
 import { showToast } from '@/utils/feedback'
+import { http } from '@/api/request';
+import { useWebSocket } from '@/composables/useWebSocket';
 
 export default {
   name: 'ChatDetail',
   setup() {
+    const { onMessage } = useWebSocket();
     const route = useRoute()
     const router = useRouter()
     const chatStore = useChatStore()
@@ -120,9 +123,9 @@ export default {
     })
 
     // 从 Store 获取消息
-    const currentMessages = computed(() => {
-      return chatStore.getMessagesByConversationId(contactId) || []
-    })
+    const currentMessages = computed(() =>
+      chatStore.getters['chat/getMessagesByConversationId'](contactId)
+    );
 
     // 判断消息是否是自己发的
     const isMyMessage = (message) => {
@@ -134,23 +137,41 @@ export default {
       router.back()
     }
 
-    // 发送消息
-    const handleSendMessage = async () => {
-      const content = inputContent.value
-      if (!content.trim()) return
-      
+    /* 加载历史 */
+    onMounted(async () => {
+      isLoading.value = true;
       try {
-        await chatStore.sendMessage({
-          conversationId: contactId,
-          content: content.trim(),
-          type: 'text'
-        })
-        inputContent.value = ''
-        nextTick(scrollToBottom)
-      } catch (error) {
-        showToast('发送失败，请重试')
+        await chatStore.dispatch('chat/fetchMessages', { contactId });
+      } catch (e) {
+        console.error('加载历史失败', e);
+      } finally {
+        isLoading.value = false;
+        nextTick(scrollToBottom);
       }
-    }
+
+      // 实时收消息
+      onMessage((msg) => {
+        if (msg.from !== contactId) return;
+        chatStore.commit('chat/ADD_MESSAGE', {
+          conversationId: contactId,
+          message: { ...msg, _id: msg._id || Date.now() }
+        });
+        nextTick(scrollToBottom);
+      });
+    });
+
+    /* 发送 */
+    const handleSendMessage = async () => {
+      const content = inputContent.value.trim();
+      if (!content) return;
+      await chatStore.dispatch('chat/sendMessage', {
+        conversationId: contactId,
+        content,
+        type: 'text'
+      });
+      inputContent.value = '';
+      nextTick(scrollToBottom);
+    };
 
     const scrollToBottom = () => {
       if (messageListRef.value) {
@@ -162,26 +183,6 @@ export default {
     watch(currentMessages, () => {
       nextTick(scrollToBottom)
     }, { deep: true })
-
-    // 组件挂载时加载消息
-    onMounted(async () => {
-      isLoading.value = true
-      try {
-        await userStore.fetchCurrentUser()
-        await chatStore.fetchConversations()
-        chatStore.selectConversation(contactId)
-        
-        await chatStore.fetchMessages({
-          userId: currentUser.value.id,
-          contactId: contactId
-        })
-      } catch (error) {
-        console.error('加载失败:', error)
-        showToast('加载失败')
-      } finally {
-        isLoading.value = false
-      }
-    })
 
     return {
       currentContact,

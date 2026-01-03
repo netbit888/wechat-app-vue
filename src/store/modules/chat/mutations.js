@@ -126,3 +126,10 @@ export default {
     state.typingUsers[conversationId][userId] = isTyping
   }
 }
+
+export const REPLACE_TEMP_MESSAGE = (state, { conversationId, tempId, realMessage }) => {
+  const list = state.messages[conversationId];
+  if (!list) return;
+  const idx = list.findIndex(m => m._id === tempId);
+  if (idx > -1) list.splice(idx, 1, realMessage);
+};

@@ -86,6 +86,7 @@
 
 <script>
 import { ref, computed, onMounted, nextTick } from 'vue'
+import contactAPI from '@/api/modules/contact';
 import { useRouter } from 'vue-router'
 import { useContactStore } from '@/composables/useStore'
 import SearchBar from '@/components/business/Common/SearchBar/SearchBar.vue'
@@ -109,7 +110,22 @@ export default {
     const searchKeyword = ref('')
 
     // 获取联系人数据
-    const contacts = computed(() => contactStore.contacts || [])
+    const contacts = ref([]);
+
+    onMounted(async () => {
+      try {
+        const res = await contactAPI.getList();   // {ok:1, friends:[...]}
+        const raw = res.friends || [];            // 拿数组
+        contacts.value = raw.map(u => ({
+          id:   u._id,
+          name: u.nickname?.trim() || u.username || '微信用户',
+          avatar: u.avatar || ''
+        }));
+      } catch (e) {
+        console.error('加载联系人失败', e);
+      }
+    });
+
     const friendRequestsCount = computed(() => contactStore.friendRequests?.length || 0)
 
     const handleSearch = (keyword) => {
@@ -196,12 +212,15 @@ export default {
     }
 
     const viewContactDetail = (contact) => {
-      if (contact?.id) {
-        router.push(`/contact/${contact.id}`)
-      } else {
-        console.error('联系人ID无效:', contact)
+      if (!contact?.id) {
+        showToast('用户信息不完整，无法聊天');
+        return;
       }
-    }
+      router.push({
+        path: `/wechat/chat/${contact.id}`,
+        query: { name: contact.name || '微信用户' }
+      });
+    };
 
     const showAddMenu = () => {
       console.log('显示添加菜单')
