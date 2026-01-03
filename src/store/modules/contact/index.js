@@ -1,7 +1,13 @@
-// src/store/modules/user/index.js
+// src/store/modules/contact/index.js
 import state from './state'
+import getters from './getters'
+import mutations from './mutations'
+import actions from './actions'
 
 export default {
   namespaced: true,
-  state
+  state,
+  getters,
+  mutations,
+  actions
 }

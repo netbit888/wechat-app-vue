@@ -1,5 +1,5 @@
 <template>
-  <div class="contact-item" @click="handleClick">
+  <div class="contact-item" @click.stop="$emit('click', contact)">
     <Avatar 
       :size="'medium'" 
       :text="displayName" 
@@ -54,11 +54,6 @@ export default {
   computed: {
     displayName() {
       return this.contact.remarkName || this.contact.nickname || '未知用户'
-    }
-  },
-  methods: {
-    handleClick() {
-      this.$emit('click', this.contact)
     }
   }
 }

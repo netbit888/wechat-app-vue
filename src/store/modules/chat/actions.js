@@ -1,9 +1,51 @@
+// src/store/modules/chat/actions.js
 import { chatApi } from '@/api'
 import storage, { STORAGE_KEYS } from '@/utils/storage'
 import { showToast } from '@/utils/feedback'
 import { http } from '@/api/request'
 
 export default {
+  // ✅ 第3步：添加选中会话的action
+  selectConversation({ commit, dispatch, state }, conversationId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        console.log('selectConversation: 选中会话', conversationId)
+        
+        // 1. 设置当前会话ID
+        commit('SET_CURRENT_CONVERSATION_ID', conversationId)
+        
+        // 2. 标记该会话为已读
+        const conversation = state.conversations.find(conv => conv.id === conversationId)
+        if (conversation && conversation.unreadCount > 0) {
+          commit('MARK_CONVERSATION_READ', conversationId)
+        }
+        
+        // 3. 加载消息历史（如果还没有加载过）
+        const existingMessages = state.messages[conversationId]
+        if (!existingMessages || existingMessages.length === 0) {
+          try {
+            await dispatch('fetchMessages', { contactId: conversationId })
+          } catch (error) {
+            console.warn('加载消息历史失败，但继续:', error)
+            // 即使加载失败也继续，不阻塞用户操作
+          }
+        }
+        
+        // 4. 记录最后查看时间
+        commit('UPDATE_LAST_VIEW_TIME', {
+          conversationId,
+          timestamp: Date.now()
+        })
+        
+        resolve(conversationId)
+      } catch (error) {
+        console.error('选择会话失败:', error)
+        showToast('选择会话失败', 'error')
+        reject(error)
+      }
+    })
+  },
+  
   // 获取聊天列表
   async fetchConversations({ commit, state }) {
     try {
@@ -39,44 +81,37 @@ export default {
     }
   },
   
-  /** 拉历史消息 */
+  // 拉历史消息
   async fetchMessages({ commit }, { contactId }) {
     try {
       console.log('加载消息历史，联系人ID:', contactId)
       
-      let messages = []; // 1. 先初始化为空数组
+      let messages = []
       
-      // 检查chatApi是否有对应方法
       if (chatApi && chatApi.getHistory) {
         const response = await chatApi.getHistory(contactId)
-        // 2. 使用默认值，并确保是数组
         messages = Array.isArray(response?.data) ? response.data : 
                   (Array.isArray(response) ? response : [])
       } else {
-        // 回退到http
         const response = await http.get(`/chat/history/${contactId}`)
-        // 3. 同样确保是数组
         messages = Array.isArray(response?.data) ? response.data : []
       }
       
-      // 4. 此时 messages 一定是数组
       commit('ADD_MESSAGES', { conversationId: contactId, messages })
       return messages
       
     } catch (error) {
       console.error('加载消息历史失败:', error)
       showToast('加载消息失败')
-      // 5. 即使出错，也提交空数组，保证UI不崩溃
       commit('ADD_MESSAGES', { conversationId: contactId, messages: [] })
       throw error
     }
   },
 
-  /** 发消息 + 落库 */
+  // 发消息
   async sendMessage({ commit, rootGetters }, { conversationId, content, type = 'text' }) {
-    const currentUser = rootGetters['user/currentUser'] || { id: 'me', name: '我' };
+    const currentUser = rootGetters['user/currentUser'] || { id: 'me', name: '我' }
 
-    // 1. 临时消息（保持你原有逻辑）
     const tempMsg = {
       _id: `temp_${Date.now()}`,
       type,
@@ -85,31 +120,30 @@ export default {
       receiver: { _id: conversationId },
       timestamp: new Date().toISOString(),
       status: 'sending'
-    };
-    commit('ADD_MESSAGE', { conversationId, message: tempMsg });
+    }
+    commit('ADD_MESSAGE', { conversationId, message: tempMsg })
 
-    // 2. 真实发送（后端用 to 而不是 receiver）
     try {
       const { data } = await http.post('/chat/message', {
         sender: currentUser.id,
-        to: conversationId,          // ✅ 对齐后端字段
+        to: conversationId,
         content,
         type
-      });
-      // 3. 用真实消息替换临时消息
+      })
+      
       commit('REPLACE_TEMP_MESSAGE', {
         conversationId,
         tempId: tempMsg._id,
         realMessage: data
-      });
-      return data;
+      })
+      return data
     } catch (e) {
       commit('UPDATE_MESSAGE_STATUS', {
         conversationId,
         tempId: tempMsg._id,
         status: 'error'
-      });
-      throw e;
+      })
+      throw e
     }
   }
 }

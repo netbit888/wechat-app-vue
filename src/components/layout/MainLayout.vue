@@ -67,11 +67,27 @@ export default {
   },
   computed: {
     showTabBar() {
+      const currentPath = this.$route.path;
+      
+      // 不显示底部导航栏的路径（聊天页面）
+      const hideTabBarPaths = [
+        '/wechat/chat/',  // 聊天详情页
+        '/wechat/chat'    // 聊天页面
+      ];
+      
+      // 如果是聊天页面，隐藏底部导航栏
+      for (const path of hideTabBarPaths) {
+        if (currentPath.startsWith(path)) {
+          return false;
+        }
+      }
+      
       // 在这些路径下显示底部导航栏
-      const tabBarPaths = ['/wechat', '/contact', '/discover', '/me']
-      return tabBarPaths.some(path => this.$route.path.startsWith(path))
+      const tabBarPaths = ['/wechat', '/contact', '/discover', '/me'];
+      return tabBarPaths.some(path => this.$route.path.startsWith(path));
     }
   },
+  
   methods: {
     switchTab(tab) {
       if (!this.$route.path.startsWith(tab.path)) {

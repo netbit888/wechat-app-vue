@@ -78,8 +78,18 @@ router.post('/login', async (req, res) => {
 
 // 获取个人信息
 router.get('/profile', protect, async (req, res) => {
-  const user = await User.findById(req.userId).select('-password');
-  res.json({ success: true, data: user });
+  try {
+    const user = await User.findById(req.userId)
+      .select('-password')
+      .populate('friends', 'username nickname avatar lastLogin');
+    
+    res.json({ 
+      success: true, 
+      data: user 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
 export default router;

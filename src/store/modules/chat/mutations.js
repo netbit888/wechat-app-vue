@@ -1,8 +1,4 @@
 export default {
-  SET_CURRENT_CONVERSATION_ID(state, conversationId) {
-    state.currentConversationId = conversationId
-  },
-  
   // 批量添加消息（自动去重和排序）
   ADD_MESSAGES(state, { conversationId, messages }) {
     // 关键修改1：确保 messages 参数是一个数组
@@ -84,11 +80,34 @@ export default {
     }
   },
   
-  // 标记会话已读
-  MARK_CONVERSATION_AS_READ(state, conversationId) {
-    const conversation = state.conversations.find(c => c.id === conversationId)
-    if (conversation) {
-      conversation.unreadCount = 0
+  // 设置当前会话ID
+  SET_CURRENT_CONVERSATION_ID(state, conversationId) {
+    state.currentConversationId = conversationId
+    console.log('设置当前会话ID:', conversationId)
+  },
+
+  // 标记会话为已读
+  MARK_CONVERSATION_READ(state, conversationId) {
+    const index = state.conversations.findIndex(c => c.id === conversationId)
+    if (index !== -1) {
+      // 创建新对象以触发响应式更新
+      const updatedConversation = {
+        ...state.conversations[index],
+        unreadCount: 0
+      }
+      state.conversations.splice(index, 1, updatedConversation)
+    }
+  },
+
+  // 更新最后查看时间
+  UPDATE_LAST_VIEW_TIME(state, { conversationId, timestamp }) {
+    const index = state.conversations.findIndex(c => c.id === conversationId)
+    if (index !== -1) {
+      const updatedConversation = {
+        ...state.conversations[index],
+        lastViewedAt: timestamp
+      }
+      state.conversations.splice(index, 1, updatedConversation)
     }
   },
   

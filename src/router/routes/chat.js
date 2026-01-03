@@ -7,9 +7,12 @@ export default [
     meta: { requiresAuth: true }
   },
   {
-    path: '/wechat/chat/:id',
+    path: '/chat/:id',
     name: 'ChatDetail',
     component: () => import('@/views/WeChat/ChatDetail.vue'),
-    meta: { requiresAuth: true }
+    meta: {
+      showTabBar: false,
+      requiresAuth: true
+    }
   }
 ];

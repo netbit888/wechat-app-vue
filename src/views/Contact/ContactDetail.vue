@@ -83,76 +83,46 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted } from 'vue'
+<script setup>
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useContactStore } from '@/composables/useStore'
+import { useStore } from '@/store'
 import Avatar from '@/components/ui/Avatar/Avatar.vue'
 
-export default {
-  name: 'ContactDetail',
-  components: {
-    Avatar
-  },
-  setup() {
-    const route = useRoute()
-    const router = useRouter()
-    const contactStore = useContactStore()
-    const contact = ref(null)
+const store   = useStore()
+const route   = useRoute()
+const router  = useRouter()
 
-    const contactId = parseInt(route.params.id)
+/* 1. 永远拿到数组（getter 已兜底） */
+const contacts = computed(() => store.getters['contact/contacts'])
 
-    onMounted(() => {
-      const foundContact = contactStore.contacts.find(c => c.id === contactId)
-      if (foundContact) {
-        contact.value = foundContact
-      } else {
-        router.back()
-      }
-    })
+/* 2. 路由参数保持字符串即可，不用 parseInt */
+const contactId = route.params.id
 
-    const goBack = () => {
-      router.back()
-    }
+/* 3. 直接算出当前联系人 */
+const contact = computed(() => contacts.value.find(c => c.id === contactId))
 
-    const showMoreMenu = () => {
-      console.log('显示更多菜单')
-    }
+/* 4. 万一找不到人，立即退回上一页 */
+onMounted(() => {
+  if (!contact.value) router.back()
+})
 
-    const sendMessage = () => {
-      if (contact.value?.id) {
-        router.push(`/chat/${contact.value.id}`)
-      }
-    }
-
-    const videoCall = () => {
-      console.log('音视频通话:', contact.value.nickname)
-    }
-
-    const editRemark = () => {
-      console.log('编辑备注')
-    }
-
-    const callPhone = () => {
-      console.log('拨打电话:', contact.value.phone)
-    }
-
-    const viewMoments = () => {
-      console.log('查看朋友圈')
-    }
-
-    return {
-      contact,
-      goBack,
-      showMoreMenu,
-      sendMessage,
-      videoCall,
-      editRemark,
-      callPhone,
-      viewMoments
-    }
+/* 5. 函数们 */
+const goBack     = () => router.back()
+const sendMessage = () => {
+  console.log('准备跳转聊天', contact.value.id)
+  if (contact.value?.id) {
+    router.push(`/chat/${contact.value.id}`)
   }
 }
+const videoCall  = () => console.log('音视频通话:', contact.value?.nickname)
+const editRemark = () => console.log('编辑备注')
+const callPhone  = () => console.log('拨打电话:', contact.value?.phone)
+const viewMoments= () => console.log('查看朋友圈')
+const showMoreMenu=()=> console.log('显示更多菜单')
+
+/* 6. 模板需要的东西统一导出 */
+/*  使用 <script setup> 时自动暴露，无需 return */
 </script>
 
 <style scoped>

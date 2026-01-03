@@ -56,7 +56,7 @@
           v-for="contact in searchResults" 
           :key="contact.id"
           :contact="contact"
-          @click="viewContactDetail(contact)"
+          @click="(c)=>{console.log('点好友',c?.id);viewContactDetail(c)}"
         >
           <!-- ✅ 新增：添加按钮（仅非好友） -->
           <template #extra>
@@ -79,7 +79,7 @@
             v-for="contact in group.contacts" 
             :key="contact.id"
             :contact="contact"
-            @click="viewContactDetail(contact)"
+            @click="(c)=>{console.log('父级传参',c);viewContactDetail(c)}"
           />
         </div>
       </div>
@@ -93,146 +93,122 @@
   </div>
 </template>
 
-<script>
-import { ref, computed, onMounted } from 'vue'
-import contactAPI from '@/api/modules/contact';
+<script setup>
+import { computed, ref, onMounted } from 'vue'
+import { useStore } from '@/store'
 import { useRouter } from 'vue-router'
-import { useContactStore } from '@/composables/useStore'
+import contactAPI from '@/api/modules/contact'
 import SearchBar from '@/components/business/Common/SearchBar/SearchBar.vue'
 import ContactItem from '@/components/business/Contact/ContactItem/ContactItem.vue'
 import LetterNavigation from '@/components/business/Contact/LetterNavigation.vue'
 import Badge from '@/components/ui/Badge/Badge.vue'
 import { pinyin } from 'pinyin-pro'
 
-export default {
-  name: 'ContactList',
-  components: { SearchBar, ContactItem, LetterNavigation, Badge },
-  setup() {
-    const router = useRouter()
-    const contactStore = useContactStore()
-    const contactListRef = ref(null)
-    const searchKeyword = ref('')
-    const searchResults = ref([])          // ✅ 新增
-    const contacts = ref([])
+/* 0. 数据源：永远数组 */
+const store   = useStore()
+const contacts = computed(() => store.getters['contact/contacts'])
 
-    onMounted(async () => {
-      try {
-        const res = await contactAPI.getList();
-        const raw = res.friends || [];
-        contacts.value = raw.map(u => ({
-          id: u._id,
-          nickname: u.nickname?.trim() || u.username,   // ✅ 统一用 nickname 字段
-          avatar: u.avatar || ''
-        }));
-      } catch (e) {
-        console.error('加载联系人失败', e);
-      }
-    });
+const router = useRouter()
+const contactListRef = ref(null)
+const searchKeyword = ref('')
+const searchResults = ref([])
 
-    const friendRequestsCount = computed(() => contactStore.friendRequests?.length || 0)
+/* 1. 初始化：只负责把后端数据写进 store */
+onMounted(async () => {
+  try {
+    const res = await contactAPI.getList()
+    console.log('后端返回', res)          // 留着你现有的日志
+    // 关键：显式把 _id 映射成 id
+    const list = (res.friends || []).map(u => ({
+      id: u._id,                    // ← 就是这里
+      nickname: u.nickname?.trim() || u.username,
+      avatar: u.avatar || ''
+    }))
+    await store.dispatch('contact/loadContacts', list)
+    console.log('store里的contacts', contacts.value)
+  } catch (e) {
+    console.error('加载联系人失败', e)
+  }
+})
 
-    /* ✅ 新增：搜索 */
-    const handleSearch = async (keyword) => {
-      const kw = keyword.trim()
-      if (!kw) { searchResults.value = []; return }
-      try {
-        const { users } = await contactAPI.search(kw)
-        searchResults.value = users.map(u => ({
-          id: u._id,
-          nickname: u.nickname?.trim() || u.username,
-          avatar: u.avatar || ''
-        }))
-      } catch (e) {
-        console.error('搜索失败', e)
-        searchResults.value = []
-      }
-    }
+/* 2. 好友请求数 */
+const friendRequestsCount = computed(() => store.state.contact.friendRequests?.length || 0)
 
-    /* ✅ 新增：判断是否好友 */
-    const isAlreadyFriend = (userId) => contacts.value.some(c => c.id === userId)
-
-    /* ✅ 新增：发送好友请求 */
-    const addFriend = async (userId) => {
-      try {
-        await contactAPI.add(userId)
-        alert('已发送好友请求')
-      } catch (e) {
-        alert(e?.response?.data?.msg || '添加失败')
-      }
-    }
-
-    const getFirstLetter = (name) => {
-      if (!name || typeof name !== 'string' || name.length === 0) return '#'
-      try {
-        const firstChar = name.charAt(0)
-        const pinyinResult = pinyin(firstChar, { pattern: 'first', toneType: 'none' })
-        const letter = pinyinResult?.charAt(0)?.toUpperCase() || '#'
-        return /[A-Z]/.test(letter) ? letter : '#'
-      } catch (error) {
-        console.warn('获取首字母失败:', error)
-        return '#'
-      }
-    }
-
-    const groupedContacts = computed(() => {
-      if (!Array.isArray(contacts.value) || contacts.value.length === 0) return []
-      const groups = {}
-      contacts.value.forEach((contact) => {
-        const letter = getFirstLetter(contact.nickname)
-        if (!groups[letter]) groups[letter] = []
-        groups[letter].push(contact)
-      })
-      return Object.keys(groups).sort().map(letter => ({
-        letter,
-        contacts: groups[letter].sort((a, b) =>
-          a.nickname.toLowerCase().localeCompare(b.nickname.toLowerCase(), 'zh-CN')
-        )
-      }))
-    })
-
-    const navigationLetters = computed(() => groupedContacts.value.map(g => g.letter))
-
-    const handleLetterNavigate = (letter) => {
-      const el = document.getElementById(`group-${letter}`)
-      if (el && contactListRef.value) {
-        contactListRef.value.scrollTo({ top: el.offsetTop - 44, behavior: 'smooth' })
-      }
-    }
-
-    const viewContactDetail = (contact) => {
-      if (!contact?.id) return alert('用户信息不完整')
-      router.push({ path: `/wechat/chat/${contact.id}`, query: { name: contact.nickname } })
-    }
-
-    const showAddMenu = () => console.log('显示添加菜单')
-    const search = () => console.log('搜索')
-    const goToNewFriends = () => router.push('/contact/new-friends')
-    const goToTags = () => console.log('跳转到标签')
-    const goToGroups = () => console.log('跳转到群聊')
-    const goToDevices = () => console.log('跳转到设备')
-
-    return {
-      searchKeyword,
-      contacts,
-      friendRequestsCount,
-      groupedContacts,
-      searchResults,          // ✅ 新增
-      navigationLetters,
-      contactListRef,
-      handleSearch,
-      handleLetterNavigate,
-      viewContactDetail,
-      isAlreadyFriend,        // ✅ 新增
-      addFriend,              // ✅ 新增
-      showAddMenu,
-      search,
-      goToNewFriends,
-      goToTags,
-      goToGroups,
-      goToDevices
-    }
+/* 3. 搜索：依然走接口，结果仅用于展示 */
+const handleSearch = async (keyword) => {
+  const kw = keyword.trim()
+  if (!kw) { searchResults.value = []; return }
+  try {
+    const { users } = await contactAPI.search(kw)
+    searchResults.value = users
+  } catch (e) {
+    console.error('搜索失败', e)
+    searchResults.value = []
   }
 }
+
+/* 4. 判断是否好友 → 直接用 getter 数据 */
+const isAlreadyFriend = (userId) => contacts.value.some(c => c.id === userId)
+
+/* 5. 加好友 */
+const addFriend = async (userId) => {
+  try {
+    await contactAPI.add(userId)
+    alert('已发送好友请求')
+  } catch (e) {
+    alert(e?.response?.data?.msg || '添加失败')
+  }
+}
+
+/* 6. 首字母 */
+const getFirstLetter = (name) => {
+  if (!name?.trim()) return '#'
+  try {
+    const letter = pinyin(name[0], { pattern: 'first', toneType: 'none' })?.[0]?.toUpperCase()
+    return /[A-Z]/.test(letter) ? letter : '#'
+  } catch {
+    return '#'
+  }
+}
+
+/* 7. 分组字母列表 */
+const groupedContacts = computed(() => {
+  const groups = {}
+  contacts.value.forEach((c) => {
+    const letter = getFirstLetter(c.nickname)
+    if (!groups[letter]) groups[letter] = []
+    groups[letter].push(c)
+  })
+  return Object.keys(groups)
+    .sort()
+    .map(letter => ({
+      letter,
+      contacts: groups[letter].sort((a, b) =>
+        a.nickname.toLowerCase().localeCompare(b.nickname.toLowerCase(), 'zh-CN')
+      )
+    }))
+})
+const navigationLetters = computed(() => groupedContacts.value.map(g => g.letter))
+
+/* 8. 字母导航 */
+const handleLetterNavigate = (letter) => {
+  const el = document.getElementById(`group-${letter}`)
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+/* 9. 跳资料页 */
+const viewContactDetail = (contact) => {
+  if (!contact?.id) return
+  router.push(`/contact/${contact.id}`)
+}
+
+/* 10. 其他入口 */
+const showAddMenu = () => console.log('显示添加菜单')
+const search = () => console.log('搜索')
+const goToNewFriends = () => router.push('/contact/new-friends')
+const goToTags = () => console.log('跳转到标签')
+const goToGroups = () => console.log('跳转到群聊')
+const goToDevices = () => console.log('跳转到设备')
 </script>
 
 <style scoped>

@@ -94,7 +94,7 @@
               </div>
             </div>
             <div class="chat-meta">
-              <div class="time">{{ formatTime(chat.lastMessage.time) }}</div>
+              <div class="time">{{ formatTime(chat.lastMessage?.time) }}</div>
               <div v-if="chat.isMuted && chat.unreadCount > 0" class="muted-dot"></div>
             </div>
           </div>
@@ -106,76 +106,62 @@
 
 <script>
 import { Button, Avatar, Badge } from '@/components/ui'
-import { useChatStore } from '@/composables/useStore'
+import { useConversationList } from '@/composables/useConversationList' // << 关键
 import { useRouter } from 'vue-router'
-import { onMounted } from 'vue'
 
 export default {
   name: 'ChatList',
-  components: {
-    Button,
-    Avatar,  // 保留Avatar组件，虽然暂时未使用，但避免潜在依赖问题
-    Badge
-  },
+  components: { Button, Avatar, Badge },
   setup() {
-    const chatStore = useChatStore()
     const router = useRouter()
+    const { topList: topConversations, normalList: normalConversations } = useConversationList()
 
-    // ✅ 添加 mounted 钩子
-    onMounted(() => {
-      console.log('ChatList 组件已挂载')
-      // 这里可以添加组件挂载时需要执行的逻辑
-      // 比如：加载会话列表数据、初始化事件监听等
-      try {
-        // 示例：加载会话数据
-        // await chatStore.loadConversations()
-      } catch (error) {
-        console.error('ChatList mounted 钩子执行错误:', error)
-      }
-    })    
-
+    /* 时间格式化 */
     const formatTime = (timeString) => {
-      const date = new Date(timeString)
-      const now = new Date()
-      const diff = now - date
-      const oneDay = 24 * 60 * 60 * 1000
-      
-      if (diff < oneDay) {
-        return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-      } else if (diff < 2 * oneDay) {
-        return '昨天'
-      } else if (diff < 7 * oneDay) {
-        const days = ['日', '一', '二', '三', '四', '五', '六']
-        return `星期${days[date.getDay()]}`
-      } else {
-        return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })
+      if (!timeString) return '刚刚'
+      try {
+        const date = new Date(timeString)
+        if (isNaN(date.getTime())) return '刚刚'
+
+        const now = new Date()
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        const oneDay = 24 * 60 * 60 * 1000
+        const diff = now - date
+
+        if (diff < oneDay && date.getDate() === now.getDate()) {
+          return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })
+        } else if (diff < 2 * oneDay) {
+          return '昨天'
+        } else if (diff < 7 * oneDay) {
+          const days = ['日', '一', '二', '三', '四', '五', '六']
+          return `星期${days[date.getDay()]}`
+        } else {
+          return date.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric' })
+        }
+      } catch {
+        return ''
       }
     }
-    
-    const getAvatarColor = (id) => {
-      const colors = ['#07c160', '#fa5151', '#10aeff', '#6467ef', '#ffc300']
-      return colors[(id - 1) % colors.length]
+
+    /* 跳转聊天详情 */
+    const selectChat = async (chat) => {
+      try {
+        console.log('选择聊天:', chat)
+        await chatStore.selectConversation(chat.id)   // 若 store 提供此 action
+      } catch (e) {
+        console.error('selectConversation 失败:', e)
+      } finally {
+        router.push(`/chat/${chat.id}`)
+      }
     }
-    
-    const selectChat = (chat) => {
-      chatStore.selectConversation(chat.id)
-      // 跳转到聊天详情页面
-      router.push(`/chat/${chat.id}`)
-    }
-    
-    const showAddMenu = () => {
-      console.log('显示添加菜单')
-    }
-    
-    const search = () => {
-      console.log('搜索')
-    }
-    
+
+    const showAddMenu = () => console.log('显示添加菜单')
+    const search = () => console.log('搜索')
+
     return {
-      topConversations: chatStore.topConversations,
-      normalConversations: chatStore.normalConversations,
+      topConversations,
+      normalConversations,
       formatTime,
-      getAvatarColor,
       selectChat,
       showAddMenu,
       search
