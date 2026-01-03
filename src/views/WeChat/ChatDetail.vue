@@ -90,6 +90,7 @@ import { useChatStore, useUserStore} from '@/composables/useStore'
 import { showToast } from '@/utils/feedback'
 import { http } from '@/api/request';
 import { useWebSocket } from '@/composables/useWebSocket';
+import { useStore } from '@/store'
 
 export default {
   name: 'ChatDetail',
@@ -97,12 +98,14 @@ export default {
     const { onMessage } = useWebSocket();
     const route = useRoute()
     const router = useRouter()
+    const store = useStore()
     const chatStore = useChatStore()
     const userStore = useUserStore()
     
     const messageListRef = ref(null)
     const inputContent = ref('')
     const isLoading = ref(false)
+    const websocket = useWebSocket(import.meta.env.VITE_WEBSOCKET_URL)
 
     const contactId = route.params.id
     if (!contactId) {
@@ -123,9 +126,9 @@ export default {
     })
 
     // 从 Store 获取消息
-    const currentMessages = computed(() =>
-      chatStore.getters['chat/getMessagesByConversationId'](contactId)
-    );
+    const currentMessages = computed(() => {
+      return chatStore.getMessagesByConversationId?.(contactId)?.value || []
+    })
 
     // 判断消息是否是自己发的
     const isMyMessage = (message) => {
@@ -141,7 +144,7 @@ export default {
     onMounted(async () => {
       isLoading.value = true;
       try {
-        await chatStore.dispatch('chat/fetchMessages', { contactId });
+        await chatStore.fetchMessages({ contactId });
       } catch (e) {
         console.error('加载历史失败', e);
       } finally {
@@ -149,16 +152,18 @@ export default {
         nextTick(scrollToBottom);
       }
 
-      // 实时收消息
-      onMessage((msg) => {
-        if (msg.from !== contactId) return;
-        chatStore.commit('chat/ADD_MESSAGE', {
+      websocket.connect()
+      // 监听消息
+      websocket.onMessage((msg) => {
+        if (msg.from !== contactId) return
+        // 处理消息逻辑
+        chatStore.addMessage({
           conversationId: contactId,
           message: { ...msg, _id: msg._id || Date.now() }
-        });
-        nextTick(scrollToBottom);
-      });
-    });
+        })
+        nextTick(scrollToBottom)
+      })
+    })
 
     /* 发送 */
     const handleSendMessage = async () => {

@@ -108,6 +108,7 @@
 import { Button, Avatar, Badge } from '@/components/ui'
 import { useChatStore } from '@/composables/useStore'
 import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 
 export default {
   name: 'ChatList',
@@ -119,7 +120,20 @@ export default {
   setup() {
     const chatStore = useChatStore()
     const router = useRouter()
-    
+
+    // ✅ 添加 mounted 钩子
+    onMounted(() => {
+      console.log('ChatList 组件已挂载')
+      // 这里可以添加组件挂载时需要执行的逻辑
+      // 比如：加载会话列表数据、初始化事件监听等
+      try {
+        // 示例：加载会话数据
+        // await chatStore.loadConversations()
+      } catch (error) {
+        console.error('ChatList mounted 钩子执行错误:', error)
+      }
+    })    
+
     const formatTime = (timeString) => {
       const date = new Date(timeString)
       const now = new Date()

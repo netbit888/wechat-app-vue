@@ -5,32 +5,43 @@ export default {
   
   // 批量添加消息（自动去重和排序）
   ADD_MESSAGES(state, { conversationId, messages }) {
-    if (!state.messages[conversationId]) {
-      state.messages[conversationId] = []
+    // 关键修改1：确保 messages 参数是一个数组
+    const messagesToAdd = Array.isArray(messages) ? messages : [];
+
+    // 关键修改2：确保当前会话的消息列表已初始化
+    if (!Array.isArray(state.messages[conversationId])) {
+      state.messages[conversationId] = [];
     }
-    
+
     // 去重：过滤已存在的消息
-    const existingIds = new Set(state.messages[conversationId].map(m => m._id))
-    const newMessages = messages.filter(m => m._id && !existingIds.has(m._id))
-    
-    // 合并并排序
-    state.messages[conversationId] = [
-      ...state.messages[conversationId],
-      ...newMessages
-    ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    const existingIds = new Set(state.messages[conversationId].map(m => m._id));
+    // 关键修改3：对 messagesToAdd 进行安全过滤
+    const newMessages = messagesToAdd.filter(m => m && m._id && !existingIds.has(m._id));
+
+    // 合并并排序（只有在有新消息时才操作，避免不必要的计算和渲染）
+    if (newMessages.length > 0) {
+      state.messages[conversationId] = [
+        ...state.messages[conversationId],
+        ...newMessages
+      ].sort((a, b) => new Date(a.timestamp || 0) - new Date(b.timestamp || 0)); // 关键修改4：为timestamp提供默认值
+    }
   },
   
   // 单条添加消息
   ADD_MESSAGE(state, { conversationId, message }) {
-    if (!state.messages[conversationId]) {
-      state.messages[conversationId] = []
+    // 关键修改：检查 message 对象是否存在
+    if (!message) return; // 如果 message 无效，直接返回，不进行任何操作
+
+    if (!Array.isArray(state.messages[conversationId])) {
+      state.messages[conversationId] = [];
     }
-    state.messages[conversationId].push(message)
+    
+    state.messages[conversationId].push(message);
     
     // 按时间排序
     state.messages[conversationId].sort((a, b) => 
-      new Date(a.timestamp) - new Date(b.timestamp)
-    )
+      new Date(a.timestamp || 0) - new Date(b.timestamp || 0) // 为timestamp提供默认值
+    );
   },
   
   // 更新消息状态

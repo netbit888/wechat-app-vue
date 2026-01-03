@@ -1,6 +1,7 @@
 import { chatApi } from '@/api'
 import storage, { STORAGE_KEYS } from '@/utils/storage'
 import { showToast } from '@/utils/feedback'
+import { http } from '@/api/request'
 
 export default {
   // 获取聊天列表
@@ -40,10 +41,35 @@ export default {
   
   /** 拉历史消息 */
   async fetchMessages({ commit }, { contactId }) {
-    // 直接调后端
-    const { data } = await http.get(`/chat/history/${contactId}`);
-    commit('ADD_MESSAGES', { conversationId: contactId, messages: data });
-    return data;
+    try {
+      console.log('加载消息历史，联系人ID:', contactId)
+      
+      let messages = []; // 1. 先初始化为空数组
+      
+      // 检查chatApi是否有对应方法
+      if (chatApi && chatApi.getHistory) {
+        const response = await chatApi.getHistory(contactId)
+        // 2. 使用默认值，并确保是数组
+        messages = Array.isArray(response?.data) ? response.data : 
+                  (Array.isArray(response) ? response : [])
+      } else {
+        // 回退到http
+        const response = await http.get(`/chat/history/${contactId}`)
+        // 3. 同样确保是数组
+        messages = Array.isArray(response?.data) ? response.data : []
+      }
+      
+      // 4. 此时 messages 一定是数组
+      commit('ADD_MESSAGES', { conversationId: contactId, messages })
+      return messages
+      
+    } catch (error) {
+      console.error('加载消息历史失败:', error)
+      showToast('加载消息失败')
+      // 5. 即使出错，也提交空数组，保证UI不崩溃
+      commit('ADD_MESSAGES', { conversationId: contactId, messages: [] })
+      throw error
+    }
   },
 
   /** 发消息 + 落库 */

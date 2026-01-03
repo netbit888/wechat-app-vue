@@ -1,11 +1,11 @@
 import express from 'express';
-import Message from '../models/Message.js';  // 注意：您的项目使用ES6模块，加.js后缀
-import User from '../models/User.js';        // 确保有这个模型文件
+import Message from '../models/Message.js';
+import User from '../models/User.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// ✅ 获取两个用户之间的聊天记录 (替换原有的模拟数据)
-router.get('/messages/:userId/:contactId', async (req, res) => {
+router.get('/history/:friendId', protect, async (req, res) => {
   try {
     const { userId, contactId } = req.params;
 
@@ -37,10 +37,9 @@ router.get('/messages/:userId/:contactId', async (req, res) => {
   }
 });
 
-// ✅ 发送新消息 (替换原有的模拟逻辑)
-router.post('/send', async (req, res) => {
+router.post('/message', protect, async (req, res) => {
   try {
-    const { sender, receiver, content, type } = req.body;
+    const { sender, to: receiver, content, type } = req.body;
 
     // 创建并保存消息到数据库
     const message = new Message({

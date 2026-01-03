@@ -1,5 +1,6 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'vuex';
+import { io } from 'socket.io-client'
 
 export function useWebSocket(url) {
   const socket = ref(null);
@@ -31,6 +32,14 @@ export function useWebSocket(url) {
     });
   };
 
+  // ✅ 添加 onMessage 方法
+  const onMessage = (callback) => {
+    if (socket.value) {
+      socket.value.on('receiveMessage', callback);
+    }
+  };
+
+
   const sendMessage = (data) => {
     if (socket.value && isConnected.value) {
       socket.value.emit('sendMessage', data);
@@ -50,6 +59,8 @@ export function useWebSocket(url) {
   return {
     socket,
     isConnected,
+    connect,
+    onMessage,
     sendMessage
   };
 }

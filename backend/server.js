@@ -2,8 +2,8 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path'; // ✅ 新增：用于文件路径处理
-import { fileURLToPath } from 'url'; // ✅ 新增：ESM 模块中获取 __dirname
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // 导入路由
 import userRoutes from './routes/users.js';
@@ -134,7 +134,38 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 后端服务运行在 http://localhost:${PORT}`);
+// ==================== 新增：Socket.io ====================
+import { Server } from 'socket.io';
+import http from 'http';
+
+const server = http.createServer(app);
+export const io = new Server(server, {
+  cors: {
+    origin: allowedOrigins,
+    credentials: true
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log('🔌 用户连接', socket.id);
+
+  socket.on('register', (userId) => {
+    socket.join(userId);
+    console.log('👤 用户注册房间', userId);
+  });
+
+  socket.on('sendMessage', (data) => {
+    // data: { to, content }
+    const msg = { ...data, from: socket.id, time: Date.now() };
+    io.to(data.to).emit('receiveMessage', msg);
+    console.log('📨 消息', msg);
+  });
+
+  socket.on('disconnect', () => console.log('🔌 断开', socket.id));
+});
+
+// ==================== 启动 ====================
+server.listen(PORT, () => {
+  console.log(`🚀 后端+Socket 运行在 http://localhost:${PORT}`);
   console.log(`✅ 健康检查: http://localhost:${PORT}/api/health`);
 });

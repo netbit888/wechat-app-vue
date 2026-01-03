@@ -57,7 +57,16 @@
           :key="contact.id"
           :contact="contact"
           @click="viewContactDetail(contact)"
-        />
+        >
+          <!-- ✅ 新增：添加按钮（仅非好友） -->
+          <template #extra>
+            <button
+              v-if="!isAlreadyFriend(contact.id)"
+              class="add-btn"
+              @click.stop="addFriend(contact.id)"
+            >添加</button>
+          </template>
+        </ContactItem>
       </div>
 
       <!-- 正常分组显示 -->
@@ -85,7 +94,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import contactAPI from '@/api/modules/contact';
 import { useRouter } from 'vue-router'
 import { useContactStore } from '@/composables/useStore'
@@ -97,28 +106,22 @@ import { pinyin } from 'pinyin-pro'
 
 export default {
   name: 'ContactList',
-  components: {
-    SearchBar,
-    ContactItem,
-    LetterNavigation,
-    Badge
-  },
+  components: { SearchBar, ContactItem, LetterNavigation, Badge },
   setup() {
     const router = useRouter()
     const contactStore = useContactStore()
     const contactListRef = ref(null)
     const searchKeyword = ref('')
-
-    // 获取联系人数据
-    const contacts = ref([]);
+    const searchResults = ref([])          // ✅ 新增
+    const contacts = ref([])
 
     onMounted(async () => {
       try {
-        const res = await contactAPI.getList();   // {ok:1, friends:[...]}
-        const raw = res.friends || [];            // 拿数组
+        const res = await contactAPI.getList();
+        const raw = res.friends || [];
         contacts.value = raw.map(u => ({
-          id:   u._id,
-          name: u.nickname?.trim() || u.username || '微信用户',
+          id: u._id,
+          nickname: u.nickname?.trim() || u.username,   // ✅ 统一用 nickname 字段
           avatar: u.avatar || ''
         }));
       } catch (e) {
@@ -128,19 +131,42 @@ export default {
 
     const friendRequestsCount = computed(() => contactStore.friendRequests?.length || 0)
 
-    const handleSearch = (keyword) => {
-      console.log('搜索关键词:', keyword)
+    /* ✅ 新增：搜索 */
+    const handleSearch = async (keyword) => {
+      const kw = keyword.trim()
+      if (!kw) { searchResults.value = []; return }
+      try {
+        const { users } = await contactAPI.search(kw)
+        searchResults.value = users.map(u => ({
+          id: u._id,
+          nickname: u.nickname?.trim() || u.username,
+          avatar: u.avatar || ''
+        }))
+      } catch (e) {
+        console.error('搜索失败', e)
+        searchResults.value = []
+      }
     }
 
-    // 获取首字母
+    /* ✅ 新增：判断是否好友 */
+    const isAlreadyFriend = (userId) => contacts.value.some(c => c.id === userId)
+
+    /* ✅ 新增：发送好友请求 */
+    const addFriend = async (userId) => {
+      try {
+        await contactAPI.add(userId)
+        alert('已发送好友请求')
+      } catch (e) {
+        alert(e?.response?.data?.msg || '添加失败')
+      }
+    }
+
     const getFirstLetter = (name) => {
       if (!name || typeof name !== 'string' || name.length === 0) return '#'
-      
       try {
         const firstChar = name.charAt(0)
         const pinyinResult = pinyin(firstChar, { pattern: 'first', toneType: 'none' })
         const letter = pinyinResult?.charAt(0)?.toUpperCase() || '#'
-        
         return /[A-Z]/.test(letter) ? letter : '#'
       } catch (error) {
         console.warn('获取首字母失败:', error)
@@ -148,115 +174,56 @@ export default {
       }
     }
 
-    // 分组联系人
     const groupedContacts = computed(() => {
-      if (!Array.isArray(contacts.value) || contacts.value.length === 0) {
-        return []
-      }
-
+      if (!Array.isArray(contacts.value) || contacts.value.length === 0) return []
       const groups = {}
-      
-      contacts.value.forEach((contact, index) => {
-        const displayName = contact?.nickname || contact?.remarkName || `未知用户_${index}`
-        const letter = getFirstLetter(displayName)
-        
-        if (!groups[letter]) {
-          groups[letter] = []
-        }
+      contacts.value.forEach((contact) => {
+        const letter = getFirstLetter(contact.nickname)
+        if (!groups[letter]) groups[letter] = []
         groups[letter].push(contact)
       })
-
-      // 转换为数组并排序
-      return Object.keys(groups)
-        .sort()
-        .map(letter => ({
-          letter,
-          contacts: groups[letter].sort((a, b) => {
-            const nameA = (a?.nickname || a?.remarkName || '').toString().toLowerCase()
-            const nameB = (b?.nickname || b?.remarkName || '').toString().toLowerCase()
-            
-            if (!nameA && !nameB) return 0
-            if (!nameA) return 1
-            if (!nameB) return -1
-            
-            return nameA.localeCompare(nameB, 'zh-CN')
-          })
-        }))
+      return Object.keys(groups).sort().map(letter => ({
+        letter,
+        contacts: groups[letter].sort((a, b) =>
+          a.nickname.toLowerCase().localeCompare(b.nickname.toLowerCase(), 'zh-CN')
+        )
+      }))
     })
 
-    // 搜索结果
-    const searchResults = computed(() => {
-      const keyword = searchKeyword.value?.trim?.() || ''
-      if (!keyword) return []
-      
-      return contacts.value.filter(contact => {
-        const name = (contact?.nickname || contact?.remarkName || '').toString().toLowerCase()
-        const wechatId = (contact?.wechatId || '').toString().toLowerCase()
-        
-        return name.includes(keyword.toLowerCase()) || wechatId.includes(keyword.toLowerCase())
-      })
-    })
-
-    const navigationLetters = computed(() => {
-      return groupedContacts.value.map(group => group.letter)
-    })
+    const navigationLetters = computed(() => groupedContacts.value.map(g => g.letter))
 
     const handleLetterNavigate = (letter) => {
-      const element = document.getElementById(`group-${letter}`)
-      if (element && contactListRef.value) {
-        contactListRef.value.scrollTo({
-          top: element.offsetTop - 44,
-          behavior: 'smooth'
-        })
+      const el = document.getElementById(`group-${letter}`)
+      if (el && contactListRef.value) {
+        contactListRef.value.scrollTo({ top: el.offsetTop - 44, behavior: 'smooth' })
       }
     }
 
     const viewContactDetail = (contact) => {
-      if (!contact?.id) {
-        showToast('用户信息不完整，无法聊天');
-        return;
-      }
-      router.push({
-        path: `/wechat/chat/${contact.id}`,
-        query: { name: contact.name || '微信用户' }
-      });
-    };
-
-    const showAddMenu = () => {
-      console.log('显示添加菜单')
+      if (!contact?.id) return alert('用户信息不完整')
+      router.push({ path: `/wechat/chat/${contact.id}`, query: { name: contact.nickname } })
     }
 
-    const search = () => {
-      console.log('搜索')
-    }
-
-    const goToNewFriends = () => {
-      router.push('/contact/new-friends')
-    }
-
-    const goToTags = () => {
-      console.log('跳转到标签')
-    }
-
-    const goToGroups = () => {
-      console.log('跳转到群聊')
-    }
-
-    const goToDevices = () => {
-      console.log('跳转到设备')
-    }
+    const showAddMenu = () => console.log('显示添加菜单')
+    const search = () => console.log('搜索')
+    const goToNewFriends = () => router.push('/contact/new-friends')
+    const goToTags = () => console.log('跳转到标签')
+    const goToGroups = () => console.log('跳转到群聊')
+    const goToDevices = () => console.log('跳转到设备')
 
     return {
       searchKeyword,
       contacts,
       friendRequestsCount,
       groupedContacts,
-      searchResults,
+      searchResults,          // ✅ 新增
       navigationLetters,
       contactListRef,
       handleSearch,
       handleLetterNavigate,
       viewContactDetail,
+      isAlreadyFriend,        // ✅ 新增
+      addFriend,              // ✅ 新增
       showAddMenu,
       search,
       goToNewFriends,
@@ -285,7 +252,6 @@ export default {
   position: relative;
 }
 
-/* 页面头部 - 微信标准44px */
 .page-header {
   display: flex;
   align-items: center;
@@ -309,7 +275,6 @@ export default {
   line-height: 44px;
 }
 
-/* 右侧操作按钮 */
 .header-actions {
   display: flex;
   gap: 25px;
@@ -336,7 +301,6 @@ export default {
   opacity: 0.7;
 }
 
-/* 搜索区域 */
 .search-section {
   padding: 10px 15px;
   background-color: var(--wechat-bg);
@@ -346,7 +310,6 @@ export default {
   z-index: 10;
 }
 
-/* 功能入口区域 */
 .function-section {
   background-color: white;
   margin-bottom: 20px;
@@ -372,7 +335,7 @@ export default {
   content: '';
   position: absolute;
   bottom: 0;
-  left: 57px; /* 图标30 + 边距12 + 左padding15 */
+  left: 57px;
   right: 0;
   height: 1px;
   background-color: var(--wechat-border-light);
@@ -399,7 +362,6 @@ export default {
   line-height: 1.4;
 }
 
-/* 联系人列表区域 */
 .contact-list {
   flex: 1;
   overflow-y: auto;
@@ -415,7 +377,7 @@ export default {
   background-color: var(--wechat-bg);
   font-weight: normal;
   position: sticky;
-  top: 98px; /* 44 + 10 + 44 */
+  top: 98px;
   z-index: 10;
 }
 
@@ -423,8 +385,17 @@ export default {
   top: 0;
 }
 
-/* 搜索结果 */
 .search-results {
   background-color: white;
+}
+
+/* ✅ 新增：添加按钮样式 */
+.add-btn {
+  padding: 4px 12px;
+  border: 1px solid #07c160;
+  color: #07c160;
+  background: #fff;
+  border-radius: 3px;
+  font-size: 14px;
 }
 </style>

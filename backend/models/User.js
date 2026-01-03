@@ -4,16 +4,11 @@ import bcrypt from 'bcrypt';
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  phone: { 
-    type: String, 
-    // 关键修复：先注释掉唯一索引，确保功能正常后再优化
-    // unique: true,
-    // sparse: true,
-    default: null  // 明确默认为 null
-  },
+  phone: { type: String, default: null },
   nickname: String,
   avatar: String,
-  lastLogin: Date
+  lastLogin: Date,
+  friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]   // ←新增
 }, { timestamps: true });
 
 userSchema.pre('save', async function(next) {

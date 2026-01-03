@@ -5,7 +5,7 @@ const routes = [
     name: 'ContactList',
     component: () => import('@/views/Contact/ContactList.vue'),
     meta: { requiresAuth: true }
-  }/*,
+  },
   {
     path: '/contact/:id',
     name: 'ContactDetail',
@@ -19,7 +19,6 @@ const routes = [
     component: () => import('@/views/Contact/NewFriends.vue'),
     meta: { requiresAuth: true }
   }
-  */
 ]
 
 export default routes

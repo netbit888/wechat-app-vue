@@ -12,6 +12,7 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |       auth.js
 |       
 +---models
+|       FriendRequest.js
 |       Message.js
 |       User.js
 |       
@@ -80,7 +81,30 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |               util.js
 |   |               util.js.map
 |   |               
+|   +---@socket.io
+|   |   \---component-emitter
+|   |       |   LICENSE
+|   |       |   package.json
+|   |       |   Readme.md
+|   |       |   
+|   |       \---lib
+|   |           +---cjs
+|   |           |       index.d.ts
+|   |           |       index.js
+|   |           |       package.json
+|   |           |       
+|   |           \---esm
+|   |                   index.d.ts
+|   |                   index.js
+|   |                   package.json
+|   |                   
 |   +---@types
+|   |   +---cors
+|   |   |       index.d.ts
+|   |   |       LICENSE
+|   |   |       package.json
+|   |   |       README.md
+|   |   |       
 |   |   +---node
 |   |   |   |   assert.d.ts
 |   |   |   |   async_hooks.d.ts
@@ -236,6 +260,15 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |       package.json
 |   |       README.md
 |   |       
+|   +---base64id
+|   |   |   CHANGELOG.md
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   
+|   |   \---lib
+|   |           base64id.js
+|   |           
 |   +---bcrypt
 |   |   |   .dockerignore
 |   |   |   .editorconfig
@@ -580,6 +613,116 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |       package.json
 |   |       README.md
 |   |       
+|   +---engine.io
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   wrapper.mjs
+|   |   |   
+|   |   +---build
+|   |   |   |   engine.io.d.ts
+|   |   |   |   engine.io.js
+|   |   |   |   server.d.ts
+|   |   |   |   server.js
+|   |   |   |   socket.d.ts
+|   |   |   |   socket.js
+|   |   |   |   transport.d.ts
+|   |   |   |   transport.js
+|   |   |   |   userver.d.ts
+|   |   |   |   userver.js
+|   |   |   |   
+|   |   |   +---contrib
+|   |   |   |       types.cookie.d.ts
+|   |   |   |       types.cookie.js
+|   |   |   |       
+|   |   |   +---parser-v3
+|   |   |   |       index.d.ts
+|   |   |   |       index.js
+|   |   |   |       utf8.d.ts
+|   |   |   |       utf8.js
+|   |   |   |       
+|   |   |   +---transports
+|   |   |   |       index.d.ts
+|   |   |   |       index.js
+|   |   |   |       polling-jsonp.d.ts
+|   |   |   |       polling-jsonp.js
+|   |   |   |       polling.d.ts
+|   |   |   |       polling.js
+|   |   |   |       websocket.d.ts
+|   |   |   |       websocket.js
+|   |   |   |       webtransport.d.ts
+|   |   |   |       webtransport.js
+|   |   |   |       
+|   |   |   \---transports-uws
+|   |   |           index.d.ts
+|   |   |           index.js
+|   |   |           polling.d.ts
+|   |   |           polling.js
+|   |   |           websocket.d.ts
+|   |   |           websocket.js
+|   |   |           
+|   |   \---node_modules
+|   |       +---debug
+|   |       |   |   LICENSE
+|   |       |   |   package.json
+|   |       |   |   README.md
+|   |       |   |   
+|   |       |   \---src
+|   |       |           browser.js
+|   |       |           common.js
+|   |       |           index.js
+|   |       |           node.js
+|   |       |           
+|   |       \---ms
+|   |               index.js
+|   |               license.md
+|   |               package.json
+|   |               readme.md
+|   |               
+|   +---engine.io-parser
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   Readme.md
+|   |   |   
+|   |   \---build
+|   |       +---cjs
+|   |       |   |   commons.d.ts
+|   |       |   |   commons.js
+|   |       |   |   decodePacket.browser.d.ts
+|   |       |   |   decodePacket.browser.js
+|   |       |   |   decodePacket.d.ts
+|   |       |   |   decodePacket.js
+|   |       |   |   encodePacket.browser.d.ts
+|   |       |   |   encodePacket.browser.js
+|   |       |   |   encodePacket.d.ts
+|   |       |   |   encodePacket.js
+|   |       |   |   index.d.ts
+|   |       |   |   index.js
+|   |       |   |   package.json
+|   |       |   |   
+|   |       |   \---contrib
+|   |       |           base64-arraybuffer.d.ts
+|   |       |           base64-arraybuffer.js
+|   |       |           
+|   |       \---esm
+|   |           |   commons.d.ts
+|   |           |   commons.js
+|   |           |   decodePacket.browser.d.ts
+|   |           |   decodePacket.browser.js
+|   |           |   decodePacket.d.ts
+|   |           |   decodePacket.js
+|   |           |   encodePacket.browser.d.ts
+|   |           |   encodePacket.browser.js
+|   |           |   encodePacket.d.ts
+|   |           |   encodePacket.js
+|   |           |   index.d.ts
+|   |           |   index.js
+|   |           |   package.json
+|   |           |   
+|   |           \---contrib
+|   |                   base64-arraybuffer.d.ts
+|   |                   base64-arraybuffer.js
+|   |                   
 |   +---es-define-property
 |   |   |   .eslintrc
 |   |   |   .nycrc
@@ -2400,6 +2543,146 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |           smartbuffer.d.ts
 |   |           utils.d.ts
 |   |           
+|   +---socket.io
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   Readme.md
+|   |   |   wrapper.mjs
+|   |   |   
+|   |   +---client-dist
+|   |   |       socket.io.esm.min.js
+|   |   |       socket.io.esm.min.js.map
+|   |   |       socket.io.js
+|   |   |       socket.io.js.map
+|   |   |       socket.io.min.js
+|   |   |       socket.io.min.js.map
+|   |   |       socket.io.msgpack.min.js
+|   |   |       socket.io.msgpack.min.js.map
+|   |   |       
+|   |   +---dist
+|   |   |       broadcast-operator.d.ts
+|   |   |       broadcast-operator.js
+|   |   |       client.d.ts
+|   |   |       client.js
+|   |   |       index.d.ts
+|   |   |       index.js
+|   |   |       namespace.d.ts
+|   |   |       namespace.js
+|   |   |       parent-namespace.d.ts
+|   |   |       parent-namespace.js
+|   |   |       socket-types.d.ts
+|   |   |       socket-types.js
+|   |   |       socket.d.ts
+|   |   |       socket.js
+|   |   |       typed-events.d.ts
+|   |   |       typed-events.js
+|   |   |       uws.d.ts
+|   |   |       uws.js
+|   |   |       
+|   |   \---node_modules
+|   |       +---debug
+|   |       |   |   LICENSE
+|   |       |   |   package.json
+|   |       |   |   README.md
+|   |       |   |   
+|   |       |   \---src
+|   |       |           browser.js
+|   |       |           common.js
+|   |       |           index.js
+|   |       |           node.js
+|   |       |           
+|   |       \---ms
+|   |               index.js
+|   |               license.md
+|   |               package.json
+|   |               readme.md
+|   |               
+|   +---socket.io-adapter
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   Readme.md
+|   |   |   
+|   |   +---dist
+|   |   |   |   cluster-adapter.d.ts
+|   |   |   |   cluster-adapter.js
+|   |   |   |   in-memory-adapter.d.ts
+|   |   |   |   in-memory-adapter.js
+|   |   |   |   index.d.ts
+|   |   |   |   index.js
+|   |   |   |   
+|   |   |   \---contrib
+|   |   |           yeast.d.ts
+|   |   |           yeast.js
+|   |   |           
+|   |   \---node_modules
+|   |       +---debug
+|   |       |   |   LICENSE
+|   |       |   |   package.json
+|   |       |   |   README.md
+|   |       |   |   
+|   |       |   \---src
+|   |       |           browser.js
+|   |       |           common.js
+|   |       |           index.js
+|   |       |           node.js
+|   |       |           
+|   |       \---ms
+|   |               index.js
+|   |               license.md
+|   |               package.json
+|   |               readme.md
+|   |               
+|   +---socket.io-parser
+|   |   |   LICENSE
+|   |   |   package.json
+|   |   |   Readme.md
+|   |   |   
+|   |   +---build
+|   |   |   +---cjs
+|   |   |   |       binary.d.ts
+|   |   |   |       binary.js
+|   |   |   |       index.d.ts
+|   |   |   |       index.js
+|   |   |   |       is-binary.d.ts
+|   |   |   |       is-binary.js
+|   |   |   |       package.json
+|   |   |   |       
+|   |   |   +---esm
+|   |   |   |       binary.d.ts
+|   |   |   |       binary.js
+|   |   |   |       index.d.ts
+|   |   |   |       index.js
+|   |   |   |       is-binary.d.ts
+|   |   |   |       is-binary.js
+|   |   |   |       package.json
+|   |   |   |       
+|   |   |   \---esm-debug
+|   |   |           binary.d.ts
+|   |   |           binary.js
+|   |   |           index.d.ts
+|   |   |           index.js
+|   |   |           is-binary.d.ts
+|   |   |           is-binary.js
+|   |   |           package.json
+|   |   |           
+|   |   \---node_modules
+|   |       +---debug
+|   |       |   |   LICENSE
+|   |       |   |   package.json
+|   |       |   |   README.md
+|   |       |   |   
+|   |       |   \---src
+|   |       |           browser.js
+|   |       |           common.js
+|   |       |           index.js
+|   |       |           node.js
+|   |       |           
+|   |       \---ms
+|   |               index.js
+|   |               license.md
+|   |               package.json
+|   |               readme.md
+|   |               
 |   +---socks
 |   |   |   .eslintrc.cjs
 |   |   |   .prettierrc.yaml
@@ -2572,26 +2855,49 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 |   |   \---lib
 |   |           index.js
 |   |           
-|   \---whatwg-url
+|   +---whatwg-url
+|   |   |   index.js
+|   |   |   LICENSE.txt
+|   |   |   package.json
+|   |   |   README.md
+|   |   |   webidl2js-wrapper.js
+|   |   |   
+|   |   \---lib
+|   |           encoding.js
+|   |           Function.js
+|   |           infra.js
+|   |           percent-encoding.js
+|   |           URL-impl.js
+|   |           url-state-machine.js
+|   |           URL.js
+|   |           urlencoded.js
+|   |           URLSearchParams-impl.js
+|   |           URLSearchParams.js
+|   |           utils.js
+|   |           VoidFunction.js
+|   |           
+|   \---ws
+|       |   browser.js
 |       |   index.js
-|       |   LICENSE.txt
+|       |   LICENSE
 |       |   package.json
 |       |   README.md
-|       |   webidl2js-wrapper.js
+|       |   wrapper.mjs
 |       |   
 |       \---lib
-|               encoding.js
-|               Function.js
-|               infra.js
-|               percent-encoding.js
-|               URL-impl.js
-|               url-state-machine.js
-|               URL.js
-|               urlencoded.js
-|               URLSearchParams-impl.js
-|               URLSearchParams.js
-|               utils.js
-|               VoidFunction.js
+|               buffer-util.js
+|               constants.js
+|               event-target.js
+|               extension.js
+|               limiter.js
+|               permessage-deflate.js
+|               receiver.js
+|               sender.js
+|               stream.js
+|               subprotocol.js
+|               validation.js
+|               websocket-server.js
+|               websocket.js
 |               
 +---routes
 |       chat.js

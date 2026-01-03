@@ -1,3 +1,4 @@
+// src/composables/useStore.js
 import { computed } from 'vue'
 import { useStore } from '@/store'
 
@@ -7,9 +8,6 @@ export function useAppStore() {
     // State
     isLoading: computed(() => store.state.app.isLoading),
     theme: computed(() => store.state.app.theme),
-    
-    // Getters
-    // 可以根据需要添加
   }
 }
 
@@ -29,7 +27,7 @@ export function useUserStore() {
   }
 }
 
-export function useChatStore() {
+export const useChatStore = () => {
   const store = useStore()
   return {
     // State
@@ -44,7 +42,12 @@ export function useChatStore() {
     currentMessages: computed(() => store.getters['chat/currentMessages']),
     totalUnreadCount: computed(() => store.getters['chat/totalUnreadCount']),
     
-    // Actions
+
+    fetchMessages: (payload) => store.dispatch('chat/fetchMessages', payload),
+    addMessage: (payload) => store.commit('chat/ADD_MESSAGE', payload),
+    getMessagesByConversationId: (conversationId) => 
+      computed(() => store.getters['chat/getMessagesByConversationId'](conversationId)),
+
     selectConversation: (conversationId) => store.dispatch('chat/selectConversation', conversationId),
     sendMessage: (payload) => store.dispatch('chat/sendMessage', payload),
     toggleConversationTop: (conversationId) => store.dispatch('chat/toggleConversationTop', conversationId),
@@ -53,15 +56,11 @@ export function useChatStore() {
   }
 }
 
-// 添加联系人store相关函数
-export function useContactStore() {
+export const useContactStore = () => {
   const store = useStore()
   return {
     // State
     contacts: computed(() => store.state.contact.contacts),
     friendRequests: computed(() => store.state.contact.friendRequests),
-    
-    // Actions
-    // 可以根据需要添加联系人相关的actions
   }
 }
