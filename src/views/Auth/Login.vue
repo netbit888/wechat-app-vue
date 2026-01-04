@@ -24,7 +24,7 @@
             v-model="form.username"
             type="text"
             class="input-field"
-            placeholder="请输入用户名"
+            placeholder="请输入微信号"
             maxlength="20"
             @focus="onFocus"
             @blur="onBlur"

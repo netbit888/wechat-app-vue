@@ -1,4 +1,4 @@
-<!-- 微信注册页 - 用户名版 -->
+<!-- 微信注册页 -->
 <template>
   <div class="register-container">
     <!-- 状态栏占位 -->
@@ -14,7 +14,6 @@
     <div class="main-content">
       <div class="tips">
         <p class="tips-title">创建微信账号</p>
-        <p class="tips-desc">设置用户名和密码即可开始使用</p>
       </div>
 
       <form class="form-section" @submit.prevent="handleRegister">
@@ -24,7 +23,7 @@
             v-model="form.username"
             type="text"
             class="input-field"
-            placeholder="设置用户名（4-20位）"
+            placeholder="设置微信号（4-20位）"
             maxlength="20"
             @focus="onFocus"
             @blur="onBlur"
