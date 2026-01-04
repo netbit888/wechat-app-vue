@@ -87,6 +87,7 @@ D:\MOBILE\WECHAT-APP-VUE\SRC
 |       index.js
 |       useChat.js
 |       useContact.js
+|       useConversationList.js
 |       useLocalStorage.js
 |       useStore.js
 |       useWebSocket.js
@@ -134,7 +135,10 @@ D:\MOBILE\WECHAT-APP-VUE\SRC
 |       |       state.js
 |       |       
 |       +---contact
+|       |       actions.js
+|       |       getters.js
 |       |       index.js
+|       |       mutations.js
 |       |       state.js
 |       |       
 |       \---user

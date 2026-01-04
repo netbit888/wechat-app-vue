@@ -92,4 +92,29 @@ router.get('/profile', protect, async (req, res) => {
   }
 });
 
+// 更新个人资料
+router.put('/profile', protect, async (req, res) => {
+  const ALLOW = ['nickname', 'signature', 'gender', 'region', 'avatar']
+  const payload = {}
+  ALLOW.forEach(k => { if (req.body[k] !== undefined) payload[k] = req.body[k] })
+  const user = await User.findByIdAndUpdate(req.userId, payload, { new: true }).select('-password')
+  res.json({ success: true, data: user })
+})
+
+// 获取设置
+router.get('/settings', protect, async (req, res) => {
+  const user = await User.findById(req.userId).select('settings')
+  res.json({ success: true, data: user.settings })
+})
+
+// 更新设置
+router.put('/settings', protect, async (req, res) => {
+  const user = await User.findByIdAndUpdate(
+    req.userId,
+    { settings: { ...req.body } },
+    { new: true }
+  ).select('settings')
+  res.json({ success: true, data: user.settings })
+})
+
 export default router;

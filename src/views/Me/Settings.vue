@@ -93,88 +93,57 @@
 </template>
 
 <script>
-import { ref } from 'vue'
+import { computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/composables/useStore'
+import { useLocalStorage } from '@/composables/useLocalStorage'
 import SettingsItem from '@/components/business/Me/SettingsItem.vue'
 
 export default {
   name: 'Settings',
-  components: {
-    SettingsItem
-  },
+  components: { SettingsItem },
   setup() {
     const router = useRouter()
     const userStore = useUserStore()
 
-    // 模拟设置数据
-    const messageSettings = ref({
+    /* ---------- 本地缓存 + 后端同步 ---------- */
+    const messageSettings = useLocalStorage('setting_message', {
       notification: true,
-      sound: true,
-      vibration: false
+      sound:        true,
+      vibration:    false
     })
-
-    const privacySettings = ref({
+    const privacySettings = useLocalStorage('setting_privacy', {
       personalizedAds: true
     })
-
-    const generalSettings = ref({
+    const generalSettings = useLocalStorage('setting_general', {
       darkMode: false
     })
 
-    const goBack = () => {
-      router.push('/me')
-    }
+    /* 任一开关变化即同步后端（防抖可由 watch 自动合并） */
+    const syncSettings = () => userStore.updateSettings({
+      notification:    messageSettings.value.notification,
+      sound:           messageSettings.value.sound,
+      vibration:       messageSettings.value.vibration,
+      personalizedAds: privacySettings.value.personalizedAds,
+      darkMode:        generalSettings.value.darkMode
+    })
+    watch([messageSettings, privacySettings, generalSettings], syncSettings, { deep: true })
 
-    const toggleNotification = (value) => {
-      messageSettings.value.notification = value
-      console.log('消息通知:', value ? '开' : '关')
-    }
+    /* ---------- 事件 ---------- */
+    const goBack = () => router.push('/me')
 
-    const toggleSound = (value) => {
-      messageSettings.value.sound = value
-      console.log('声音:', value ? '开' : '关')
-    }
+    const toggleNotification = v => (messageSettings.value.notification = v)
+    const toggleSound        = v => (messageSettings.value.sound = v)
+    const toggleVibration    = v => (messageSettings.value.vibration = v)
+    const togglePersonalizedAds = v => (privacySettings.value.personalizedAds = v)
+    const toggleDarkMode     = v => (generalSettings.value.darkMode = v)
 
-    const toggleVibration = (value) => {
-      messageSettings.value.vibration = value
-      console.log('振动:', value ? '开' : '关')
-    }
-
-    const togglePersonalizedAds = (value) => {
-      privacySettings.value.personalizedAds = value
-      console.log('个性化广告:', value ? '开' : '关')
-    }
-
-    const toggleDarkMode = (value) => {
-      generalSettings.value.darkMode = value
-      console.log('深色模式:', value ? '开' : '关')
-      // 实际实现中应该切换主题
-    }
-
-    const goToAccountSecurity = () => {
-      console.log('跳转到账号与安全')
-    }
-
-    const goToPrivacy = () => {
-      console.log('跳转到隐私设置')
-    }
-
-    const goToGeneral = () => {
-      console.log('跳转到通用设置')
-    }
-
-    const goToStorage = () => {
-      console.log('跳转到存储空间')
-    }
-
-    const goToAbout = () => {
-      console.log('跳转到关于微信')
-    }
-
-    const goToHelp = () => {
-      console.log('跳转到帮助与反馈')
-    }
+    const goToAccountSecurity = () => console.log('跳账号与安全')
+    const goToPrivacy         = () => console.log('跳隐私')
+    const goToGeneral         = () => console.log('跳通用')
+    const goToStorage         = () => console.log('跳存储')
+    const goToAbout           = () => console.log('跳关于')
+    const goToHelp            = () => console.log('跳帮助')
 
     const handleLogout = () => {
       if (confirm('确定要退出登录吗？')) {
@@ -209,6 +178,7 @@ export default {
 .settings-page {
   height: 100vh;
   background-color: var(--wechat-bg-color);
+  overflow-y: auto;   /* ← 加这一行就能滑 */
 }
 
 .settings-header {

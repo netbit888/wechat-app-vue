@@ -10,3 +10,7 @@ export default {
   updateProfile:(data) => http.put('/users/profile', data),
   uploadAvatar:(formData, onProgress) => http.upload('/users/avatar', formData, onProgress)
 };
+
+export const getSettings = () => request.get('/users/settings')
+export const updateSettings = data => request.put('/users/settings', data)
+export const updateProfile = data => request.put('/users/profile', data)

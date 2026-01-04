@@ -29,5 +29,9 @@ export default {
     state.currentUser = null
     state.isLoggedIn = false
     state.token = ''
+  },
+
+  SET_SETTINGS(state, settings) {
+    state.settings = settings
   }
 }

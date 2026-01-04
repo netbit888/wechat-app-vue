@@ -2,7 +2,7 @@
   <div class="profile-page">
     <!-- 用户信息头部 -->
     <header class="user-header">
-      <div class="user-info" @click="viewProfileDetail">
+      <div class="user-info" @click="$router.push('/me/profile-edit')">
         <Avatar 
           :size="'large'" 
           :text="userInfo.nickname" 
@@ -68,11 +68,6 @@
         />
       </div>
     </main>
-
-    <!-- 底部退出登录 -->
-    <footer class="logout-footer">
-      <button class="logout-button" @click="handleLogout">退出登录</button>
-    </footer>
   </div>
 </template>
 
@@ -169,6 +164,7 @@ export default {
   background-color: var(--wechat-bg);
   display: flex;
   flex-direction: column;
+  overflow-y: auto;   /* ← 加这一行就能滑 */
 }
 
 /* 用户信息头部 - 微信渐变背景 */

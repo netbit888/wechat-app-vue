@@ -2902,7 +2902,6 @@ D:\MOBILE\WECHAT-APP-VUE\BACKEND
 +---routes
 |       chat.js
 |       contacts.js
-|       test.js
 |       users.js
 |       
 \---utils

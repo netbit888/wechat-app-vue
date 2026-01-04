@@ -117,5 +117,11 @@ export default {
     } catch (error) {
       throw error;
     }
-  }
+  },
+  
+  updateSettings: async ({ commit }, payload) => {
+    const settings = await userApi.updateSettings(payload)
+    commit('SET_SETTINGS', settings)
+    return settings
+  }  
 };
