@@ -6,7 +6,7 @@
       <div v-for="r in requests" :key="r._id" class="request-item">
         <Avatar :src="r.from.avatar" size="40"/>
         <div class="info">
-          <p class="name">{{ r.from.nickname || r.from.username }}</p>
+          <p class="name">{{ r.from.nickname || r.from.wechatId }}</p>
         </div>
         <div class="actions">
           <button @click="handle(r._id, 'accept')" class="accept">接受</button>

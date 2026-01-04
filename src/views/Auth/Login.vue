@@ -21,7 +21,7 @@
         <!-- 用户名输入 -->
         <div class="input-wrapper">
           <input
-            v-model="form.username"
+            v-model="form.wechatId"
             type="text"
             class="input-field"
             placeholder="请输入微信号"
@@ -29,7 +29,7 @@
             @focus="onFocus"
             @blur="onBlur"
           >
-          <span v-if="form.username" class="clear-btn" @click="form.username = ''">✕</span>
+          <span v-if="form.wechatId" class="clear-btn" @click="form.wechatId = ''">✕</span>
         </div>
 
         <!-- 密码输入 -->
@@ -85,7 +85,7 @@ const router = useRouter();
 const store = useStore();
 
 const form = reactive({
-  username: '',
+  wechatId: '',
   password: ''
 });
 
@@ -95,7 +95,7 @@ const buttonPressed = ref(false);
 
 // 登录按钮状态
 const canLogin = computed(() => {
-  return form.username.length >= 4 && form.password.length >= 6;
+  return form.wechatId.length >= 4 && form.password.length >= 6;
 });
 
 // 输入框焦点效果

@@ -4,18 +4,18 @@ import { http } from '@/api'
 if (import.meta.env.DEV) {
   // 模拟用户登录
   http.post('/auth/login', async (config) => {
-    const { username, password } = JSON.parse(config.data)
+    const { wechatId, password } = JSON.parse(config.data)
     
     await new Promise(resolve => setTimeout(resolve, 1000)) // 模拟延迟
     
-    if (username === 'admin' && password === '123456') {
+    if (wechatId === 'admin' && password === '123456') {
       return {
         code: 0,
         data: {
           token: 'mock_token_' + Date.now(),
           user: {
             id: 1,
-            username: 'admin',
+            wechatId: 'admin',
             nickname: '管理员',
             avatar: '',
             wechatId: 'wxid_admin',

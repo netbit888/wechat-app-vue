@@ -28,57 +28,35 @@ const storage = {
 };
 
 export default {
-  // 登录
-  async login({ commit }, credentials) {
+  /* ---------- 登录 ---------- */
+  async login({ commit }, { wechatId, password }) {   // ① 参数改名
     try {
-      const response = await userApi.login(credentials);
-
-      // 保护：确保 response 是对象且包含 token/user
-      if (!response || typeof response !== 'object') {
-        throw new Error('网络异常：未获取到登录信息');
-      }
-      if (!response.token || !response.user) {
-        throw new Error(response.error || '登录信息缺失');
-      }
+      const response = await userApi.login({ wechatId, password }); // ② 传参改名
+      if (!response?.token || !response?.user) throw new Error(response.error || '登录信息缺失');
 
       const { token, user } = response;
-
-      // 保存到本地存储
-      storage.set('token', token, 24); // 24小时
+      storage.set('token', token, 24);
       storage.set('user', user);
-
-      // 提交到 store
       commit('SET_TOKEN', token);
       commit('SET_USER', user);
-
       showToast('登录成功', 'success');
       return response;
     } catch (error) {
-      // 把具体错误继续抛给组件
       throw error;
     }
   },
 
-  // 注册
-  async register({ commit }, userData) {
+  /* ---------- 注册 ---------- */
+  async register({ commit }, { wechatId, password, nickname }) { // ① 参数改名
     try {
-      const response = await userApi.register(userData);
-
-      if (!response || typeof response !== 'object') {
-        throw new Error('网络异常：未获取到注册信息');
-      }
-      if (!response.token || !response.user) {
-        throw new Error(response.error || '注册信息缺失');
-      }
+      const response = await userApi.register({ wechatId, password, nickname }); // ② 传参改名
+      if (!response?.token || !response?.user) throw new Error(response.error || '注册信息缺失');
 
       const { token, user } = response;
-
       storage.set('token', token, 24);
       storage.set('user', user);
-
       commit('SET_TOKEN', token);
       commit('SET_USER', user);
-
       showToast('注册成功', 'success');
       return response;
     } catch (error) {

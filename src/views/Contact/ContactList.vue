@@ -121,7 +121,7 @@ onMounted(async () => {
     // 关键：显式把 _id 映射成 id
     const list = (res.friends || []).map(u => ({
       id: u._id,                    // ← 就是这里
-      nickname: u.nickname?.trim() || u.username,
+      nickname: u.nickname?.trim() || u.wechatId,
       avatar: u.avatar || ''
     }))
     await store.dispatch('contact/loadContacts', list)

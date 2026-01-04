@@ -2,7 +2,7 @@ export default {
   // 当前登录用户信息
   currentUser: {
     id: 1,
-    username: 'wx_user_001',
+    wechatId: 'wx_user_001',
     nickname: '微信用户',
     avatar: '',
     phone: '13800138000',

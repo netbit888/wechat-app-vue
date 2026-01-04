@@ -20,7 +20,7 @@
         <!-- 用户名输入 -->
         <div class="input-wrapper">
           <input
-            v-model="form.username"
+            v-model="form.wechatId"
             type="text"
             class="input-field"
             placeholder="设置微信号（4-20位）"
@@ -28,7 +28,7 @@
             @focus="onFocus"
             @blur="onBlur"
           >
-          <span v-if="form.username" class="clear-btn" @click="form.username = ''">✕</span>
+          <span v-if="form.wechatId" class="clear-btn" @click="form.wechatId = ''">✕</span>
         </div>
 
         <!-- 昵称输入 -->
@@ -37,7 +37,7 @@
             v-model="form.nickname"
             type="text"
             class="input-field"
-            placeholder="设置昵称（2-20位）"
+            placeholder="设置名字（2-20位）"
             maxlength="20"
             @focus="onFocus"
             @blur="onBlur"
@@ -120,7 +120,7 @@ const router = useRouter();
 const store = useStore();
 
 const form = reactive({
-  username: '',
+  wechatId: '',
   nickname: '',
   password: '',
   confirmPassword: ''
@@ -134,7 +134,7 @@ const buttonPressed = ref(false);
 
 // 注册按钮状态
 const canRegister = computed(() => {
-  return form.username.length >= 4 && 
+  return form.wechatId.length >= 4 && 
          form.nickname.length >= 2 && 
          form.password.length >= 6 &&
          form.password === form.confirmPassword &&
@@ -171,7 +171,7 @@ const handleRegister = async () => {
   try {
     // ✅ 用户名注册请求格式
     const payload = {
-      username: form.username,  // 用户名
+      wechatId: form.wechatId,  // 用户名
       password: form.password,   // 密码
       nickname: form.nickname    // 昵称
     };

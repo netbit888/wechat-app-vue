@@ -9,7 +9,7 @@ const router = express.Router();
 router.get('/', protect, async (req, res) => {
   try {
     const me = await User.findById(req.userId)
-                         .populate('friends', 'username nickname avatar');
+                         .populate('friends', 'wechatId nickname avatar');
     res.json({ ok: 1, friends: me.friends });
   } catch (e) {
     res.status(500).json({ ok: 0, error: e.message });
@@ -24,10 +24,10 @@ router.get('/search', protect, async (req, res) => {
 
   const users = await User.find({
     $or: [
-      { username: { $regex: kw, $options: 'i' } },
+      { wechatId: { $regex: kw, $options: 'i' } },
       { nickname: { $regex: kw, $options: 'i' } }
     ]
-  }).select('username nickname avatar _id');
+  }).select('wechatId nickname avatar _id');
 
   console.log('[search] 查询结果:', users);
   res.json({ ok: 1, users });
@@ -52,7 +52,7 @@ router.post('/add', protect, async (req, res) => {
 /* 获取“新的朋友”列表 */
 router.get('/requests', protect, async (req, res) => {
   const list = await FriendRequest.find({ to: req.userId, status: 'pending' })
-    .populate('from', 'username nickname avatar')
+    .populate('from', 'wechatId nickname avatar')
     .sort({ createdAt: -1 });
   res.json({ ok: 1, requests: list });
 });
