@@ -6,84 +6,88 @@
     </header>
 
     <main class="settings-content">
-      <!-- 账号与安全 -->
+      <!-- 账号 -->
       <div class="settings-section">
-        <div class="section-title">账号与安全</div>
+        <div class="section-title">账号</div>
         <SettingsItem 
-          title="账号与安全"
-          description="微信号、密码、登录设备等"
+          title="个人资料"
+          @click="goToProfile"
+        />
+        <SettingsItem 
+          title="账号安全"
           @click="goToAccountSecurity"
         />
-      </div>
-
-      <!-- 消息通知 -->
-      <div class="settings-section">
-        <div class="section-title">消息通知</div>
         <SettingsItem 
-          title="新消息通知"
-          :switch-value="messageSettings.notification"
-          @switch-change="toggleNotification"
-        />
-        <SettingsItem 
-          title="声音"
-          :switch-value="messageSettings.sound"
-          @switch-change="toggleSound"
-        />
-        <SettingsItem 
-          title="振动"
-          :switch-value="messageSettings.vibration"
-          @switch-change="toggleVibration"
-        />
-      </div>
-
-      <!-- 隐私 -->
-      <div class="settings-section">
-        <div class="section-title">隐私</div>
-        <SettingsItem 
-          title="隐私设置"
-          description="朋友圈、通讯录权限等"
+          title="个人信息与权限"
           @click="goToPrivacy"
         />
-        <SettingsItem 
-          title="个性化广告"
-          :switch-value="privacySettings.personalizedAds"
-          @switch-change="togglePersonalizedAds"
-        />
       </div>
 
-      <!-- 通用 -->
+      <!-- 通知 -->
       <div class="settings-section">
-        <div class="section-title">通用</div>
+        <div class="section-title">通知</div>
         <SettingsItem 
-          title="通用设置"
-          description="语言、字体大小等"
-          @click="goToGeneral"
+          title="通知"
+          @click="goToNotification"
         />
         <SettingsItem 
-          title="深色模式"
-          :switch-value="generalSettings.darkMode"
-          @switch-change="toggleDarkMode"
+          title="界面与显示"
+          @click="goToInterfaceDisplay"
+        />
+        <SettingsItem 
+          title="朋友权限"
+          @click="goToFriendPermission"
         />
         <SettingsItem 
           title="存储空间"
-          description="已用 1.2GB"
           @click="goToStorage"
+        />
+        <SettingsItem 
+          title="更多"
+          @click="goToGeneral"
         />
       </div>
 
-      <!-- 关于与帮助 -->
+      <!-- 功能 -->
       <div class="settings-section">
+        <div class="section-title">功能</div>
         <SettingsItem 
-          title="关于微信"
-          description="版本 8.0.0"
-          @click="goToAbout"
+          title="聊天"
+          @click="goToGeneral"
         />
+        <SettingsItem 
+          title="音视频通话"
+          @click="goToGeneral"
+        />
+        <SettingsItem 
+          title="聊天记录管理"
+          @click="goToStorage"
+        />
+        <SettingsItem 
+          title="其他功能"
+          @click="goToGeneral"
+        />
+      </div>
+
+      <!-- 帮助与关于 -->
+      <div class="settings-section">
+        <div class="section-title">帮助与关于</div>
         <SettingsItem 
           title="帮助与反馈"
           @click="goToHelp"
         />
+        <SettingsItem 
+          title="关于微信"
+          description="版本 8.0.66"
+          @click="goToAbout"
+        />
       </div>
 
+      <!-- 切换账号 -->
+      <div class="logout-section">
+        <button class="logout-button" @click="">切换账号</button>
+      </div>
+      
       <!-- 退出登录 -->
       <div class="logout-section">
         <button class="logout-button" @click="handleLogout">退出登录</button>
@@ -138,12 +142,20 @@ export default {
     const togglePersonalizedAds = v => (privacySettings.value.personalizedAds = v)
     const toggleDarkMode     = v => (generalSettings.value.darkMode = v)
 
-    const goToAccountSecurity = () => console.log('跳账号与安全')
-    const goToPrivacy         = () => console.log('跳隐私')
-    const goToGeneral         = () => console.log('跳通用')
-    const goToStorage         = () => console.log('跳存储')
-    const goToAbout           = () => console.log('跳关于')
-    const goToHelp            = () => console.log('跳帮助')
+    const goTo = () => console.log('暂未实现')
+    const goToNotification = () => router.push('/settings/notification')
+    const goToInterfaceDisplay = () => router.push('/settings/interface-display')
+    const goToFriendPermission = () => router.push('/settings/friend-permission')
+
+    const goToProfile        = () => router.push('/settings/profile')
+    const goToAccountSecurity = () => router.push('/settings/account-security')
+    const goToPrivacy        = () => router.push('/settings/privacy')
+    const goToGeneral        = () => router.push('/settings/general')
+    const goToStorage        = () => router.push('/settings/storage')
+    const goToHelp           = () => router.push('/settings/help')
+    const goToAbout          = () => router.push('/settings/about')
+
+
 
     const handleLogout = () => {
       if (confirm('确定要退出登录吗？')) {
@@ -168,7 +180,13 @@ export default {
       goToStorage,
       goToAbout,
       goToHelp,
-      handleLogout
+      handleLogout,
+      goToProfile,
+      goToNotification,
+      goToInterfaceDisplay,
+      goToFriendPermission,
+      goTo
+      
     }
   }
 }

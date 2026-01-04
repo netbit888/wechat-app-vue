@@ -49,14 +49,13 @@ const form = reactive({ ...userStore.currentUser.value })
 const goBack = () => router.back()
 
 const save = async () => {
-  await userStore.updateProfile(form)   // 已有 action
+  await userStore.updateProfile(form)
   router.back()
 }
 
 const uploadAvatar = e => {
   const file = e.target.files[0]
   if (!file) return
-  // 后续对接文件上传
   console.log('[TODO] upload', file)
 }
 </script>
@@ -103,7 +102,7 @@ select {
   outline: none;
   text-align: right;
 }
-/* 最后一行去掉底边框 */
+
 label:last-of-type {
   border-bottom: none;
 }
