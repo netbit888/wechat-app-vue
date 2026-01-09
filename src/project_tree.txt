@@ -177,10 +177,23 @@ D:\MOBILE\WECHAT-APP-VUE\SRC
     |       Scan.vue
     |       
     +---Me
-    |       Profile.vue
-    |       Settings.vue
-    |       Wallet.vue
-    |       
+    |   |   Profile.vue
+    |   |   ProfileEdit.vue
+    |   |   Settings.vue
+    |   |   Wallet.vue
+    |   |   
+    |   \---Settings
+    |           About.vue
+    |           AccountSecurity.vue
+    |           FriendPermission.vue
+    |           General.vue
+    |           Help.vue
+    |           InterfaceDisplay.vue
+    |           Notification.vue
+    |           Privacy.vue
+    |           Profile.vue
+    |           Storage.vue
+    |           
     \---WeChat
             Chat.vue
             ChatDetail.vue

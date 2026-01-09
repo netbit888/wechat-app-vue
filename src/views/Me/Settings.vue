@@ -5,6 +5,16 @@
       <h1>设置</h1>
     </header>
 
+    <!-- 独立搜索栏 -->
+    <div class="search-bar">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="搜索"
+        v-model="keyword"
+      />
+    </div>
+
     <main class="settings-content">
       <!-- 账号 -->
       <div class="settings-section">
@@ -91,6 +101,13 @@
       <!-- 退出登录 -->
       <div class="logout-section">
         <button class="logout-button" @click="handleLogout">退出登录</button>
+      </div>
+
+      <!-- 底部声明 -->
+      <div class="footer-declare">
+        <span>个人信息收集清单</span>
+        <span class="sep">｜</span>
+        <span>第三方信息共享清单</span>
       </div>
     </main>
   </div>
@@ -199,27 +216,31 @@ export default {
   overflow-y: auto;   /* ← 加这一行就能滑 */
 }
 
-.settings-header {
+.settings-header{
   display: flex;
   align-items: center;
-  padding: 10px 15px;
-  background-color: white;
+  justify-content: center;   /* 标题居中 */
+  padding: 12px;
+  background: #fff;
   border-bottom: 1px solid var(--wechat-border-color);
+  position: relative;
+  font-size: 10px;
 }
 
-.back-button {
+.back-button{
+  position: absolute;
+  left: 12px;
   background: none;
   border: none;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 5px;
-  margin-right: 10px;
+  font-size: 20px;
 }
 
-.settings-header h1 {
-  font-size: 18px;
-  font-weight: normal;
-  margin: 0;
+.settings-header{
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 1px solid var(--wechat-border-color);
 }
 
 .settings-content {
@@ -238,23 +259,63 @@ export default {
   border-bottom: 1px solid var(--wechat-border-color);
 }
 
-.logout-section {
-  padding: 20px 15px;
-  background-color: white;
+.logout-section{
+  padding: 12px 0;        /* 只留上下，左右 0 → 贴边 */
+  background: #f1f1f1;
 }
 
-.logout-button {
+.logout-button{
   width: 100%;
-  padding: 12px;
-  background-color: var(--wechat-error-color);
-  color: white;
+  height: 48px;
+  line-height: 48px;
+  font-size: 17px;
+  color: #000;
+  background: #fff;
   border: none;
-  border-radius: 6px;
-  font-size: 16px;
+  border-radius: 0;       /* 直角 */
   cursor: pointer;
 }
 
-.logout-button:hover {
-  background-color: #e53935;
+.logout-button:active{
+  background: #e5e5e5;
 }
+
+.footer-declare{
+  padding: 24px 16px 32px;   /* 上 24 下 32，左右 16 */
+  text-align: center;
+  font-size: 13px;
+  color: #888;               /* 微信灰字 */
+  background: #f1f1f1;       /* 跟页面背景一致 */
+}
+.footer-declare .sep{
+  margin: 0 4px;
+}
+
+/* 独立搜索栏 */
+.search-bar{
+  margin: 12px 16px 0;
+  height: 36px;
+  background: #f1f1f1;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+}
+.search-icon{
+  width: 16px;
+  height: 16px;
+  fill: #888;
+  margin-right: 8px;
+}
+.search-input{
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+}
+.search-input::placeholder{
+  color: #888;
+}
+
 </style>
