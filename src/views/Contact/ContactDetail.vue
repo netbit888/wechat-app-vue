@@ -1,5 +1,5 @@
 <template>
-  <div class="contact-detail-page" v-if="contact">
+  <div class="contact-detail-page" v-if="contact && !isLoading">
     <!-- 头部导航 -->
     <header class="detail-header">
       <button class="back-button" @click="goBack">⬅</button>
@@ -84,27 +84,40 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useStore } from '@/store'
 import Avatar from '@/components/ui/Avatar/Avatar.vue'
+import contactAPI from '@/api/modules/contact.js'
 
-const store   = useStore()
 const route   = useRoute()
 const router  = useRouter()
 
-/* 1. 永远拿到数组（getter 已兜底） */
-const contacts = computed(() => store.getters['contact/contacts'])
-
-/* 2. 路由参数保持字符串即可，不用 parseInt */
+/* 1. 路由参数保持字符串即可，不用 parseInt */
 const contactId = route.params.id
 
-/* 3. 直接算出当前联系人 */
-const contact = computed(() => contacts.value.find(c => c.id === contactId))
+/* 2. 存储联系人详情 */
+const contact = ref(null)
+const isLoading = ref(true)
 
-/* 4. 万一找不到人，立即退回上一页 */
-onMounted(() => {
-  if (!contact.value) router.back()
+/* 3. 获取联系人详情 */
+onMounted(async () => {
+  try {
+    isLoading.value = true
+    const res = await contactAPI.getDetail(contactId)
+    if (res?.ok && res?.contact) {
+      contact.value = {
+        ...res.contact,
+        id: res.contact._id || res.contact.id
+      }
+    } else {
+      router.back()
+    }
+  } catch (e) {
+    console.error('获取联系人详情失败', e)
+    router.back()
+  } finally {
+    isLoading.value = false
+  }
 })
 
 /* 5. 函数们 */

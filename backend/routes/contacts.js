@@ -73,4 +73,21 @@ router.post('/handle', protect, async (req, res) => {
   res.json({ ok: 1, msg: '已' + (action === 'accept' ? '接受' : '拒绝') });
 });
 
+/* 获取联系人详情 */
+router.get('/:userId', protect, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId)
+      .select('wechatId nickname avatar region phone');
+    
+    if (!user) {
+      return res.status(404).json({ ok: 0, msg: '用户不存在' });
+    }
+    
+    res.json({ ok: 1, contact: user });
+  } catch (e) {
+    res.status(500).json({ ok: 0, error: e.message });
+  }
+});
+
 export default router;

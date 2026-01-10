@@ -140,7 +140,11 @@ const handleSearch = async (keyword) => {
   if (!kw) { searchResults.value = []; return }
   try {
     const { users } = await contactAPI.search(kw)
-    searchResults.value = users
+    // 确保搜索结果中的用户对象有id属性
+    searchResults.value = users.map(user => ({
+      ...user,
+      id: user._id || user.id
+    }))
   } catch (e) {
     console.error('搜索失败', e)
     searchResults.value = []

@@ -19,5 +19,8 @@ export default {
   
   // 处理好友请求
   handleRequest: (requestId, action) => 
-    http.post('/contacts/handle', { requestId, action })
+    http.post('/contacts/handle', { requestId, action }),
+  
+  // 获取联系人详情
+  getDetail: (userId) => http.get(`/contacts/${userId}`)
 };
