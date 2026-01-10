@@ -13,14 +13,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/me/profile-edit',
-    name: 'ProfileEdit',
-    component: () => import('@/views/Me/ProfileEdit.vue'),
-    meta: {
-      requiresAuth: true
-    }
-  },
-  {
     path: '/me/wallet',
     name: 'Wallet',
     component: () => import('@/views/Me/Wallet.vue'),

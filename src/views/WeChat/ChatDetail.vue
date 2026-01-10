@@ -40,9 +40,11 @@
               class="message-avatar"
               alt=""
             />
-            <div class="message-bubble message-bubble-other">
-              {{ message.content }}
-            </div>
+            <MessageBubble 
+              :message="message" 
+              :is-own="false"
+              @resend="handleResend"
+            />
           </div>
           
           <!-- 自己消息：左侧气泡 + 右侧头像 -->
@@ -50,9 +52,11 @@
             v-else 
             class="message-item message-item-own"
           >
-            <div class="message-bubble message-bubble-own">
-              {{ message.content }}
-            </div>
+            <MessageBubble 
+              :message="message" 
+              :is-own="true"
+              @resend="handleResend"
+            />
             <img 
               :src="currentUser.avatar || `https://picsum.photos/200/200?random=${currentUser.id}`" 
               class="message-avatar-own"
@@ -65,20 +69,14 @@
 
     <!-- 底部输入区域 -->
     <footer class="input-area">
-      <div class="input-wrapper">
-        <button class="input-button voice-button">🎤</button>
-        <div class="input-container">
-          <input 
-            type="text" 
-            class="message-input" 
-            placeholder="输入消息..."
-            v-model="inputContent"
-            @keyup.enter="handleSendMessage"
-          />
-        </div>
-        <button class="input-button emoji-button">😊</button>
-        <button class="input-button more-button" @click="handleSendMessage">发送</button>
-      </div>
+      <MessageInput 
+        @send-message="handleSendMessage"
+        @send-voice="handleSendVoice"
+        @send-image="handleSendImage"
+        @send-video="handleSendVideo"
+        @send-file="handleSendFile"
+        @send-location="handleSendLocation"
+      />
     </footer>
   </div>
 </template>
@@ -91,9 +89,13 @@ import { showToast } from '@/utils/feedback'
 import { http } from '@/api/request';
 import { useWebSocket } from '@/composables/useWebSocket';
 import { useStore } from '@/store'
+import MessageBubble from '@/components/business/Chat/MessageBubble/MessageBubble.vue'
 
 export default {
   name: 'ChatDetail',
+  components: {
+    MessageBubble
+  },
   setup() {
     const { onMessage } = useWebSocket();
     const route = useRoute()
@@ -165,17 +167,120 @@ export default {
       })
     })
 
-    /* 发送 */
-    const handleSendMessage = async () => {
-      const content = inputContent.value.trim();
-      if (!content) return;
+    /* 发送文本消息 */
+    const handleSendMessage = async (content) => {
+      if (!content.trim()) return;
       await chatStore.dispatch('chat/sendMessage', {
         conversationId: contactId,
         content,
         type: 'text'
       });
-      inputContent.value = '';
       nextTick(scrollToBottom);
+    };
+    
+    /* 发送语音消息 */
+    const handleSendVoice = async (voiceData) => {
+      try {
+        await chatStore.dispatch('chat/sendMessage', {
+          conversationId: contactId,
+          content: voiceData,
+          type: 'voice'
+        });
+        showToast('语音发送成功', 'success');
+        nextTick(scrollToBottom);
+      } catch (error) {
+        showToast('语音发送失败', 'error');
+        console.error('语音发送失败:', error);
+      }
+    };
+    
+    /* 发送图片消息 */
+    const handleSendImage = async () => {
+      try {
+        // 模拟图片数据
+        const imageData = {
+          url: 'https://picsum.photos/200/200?random=' + Date.now(),
+          name: 'image.jpg',
+          size: '1.2MB'
+        };
+        await chatStore.dispatch('chat/sendMessage', {
+          conversationId: contactId,
+          content: imageData,
+          type: 'image'
+        });
+        showToast('图片发送成功', 'success');
+        nextTick(scrollToBottom);
+      } catch (error) {
+        showToast('图片发送失败', 'error');
+        console.error('图片发送失败:', error);
+      }
+    };
+    
+    /* 发送视频消息 */
+    const handleSendVideo = async () => {
+      try {
+        // 模拟视频数据
+        const videoData = {
+          url: 'https://example.com/video.mp4',
+          name: 'video.mp4',
+          size: '10.5MB',
+          duration: '1:23'
+        };
+        await chatStore.dispatch('chat/sendMessage', {
+          conversationId: contactId,
+          content: videoData,
+          type: 'video'
+        });
+        showToast('视频发送成功', 'success');
+        nextTick(scrollToBottom);
+      } catch (error) {
+        showToast('视频发送失败', 'error');
+        console.error('视频发送失败:', error);
+      }
+    };
+    
+    /* 发送文件消息 */
+    const handleSendFile = async () => {
+      try {
+        // 模拟文件数据
+        const fileData = {
+          name: 'document.pdf',
+          size: '1.5MB',
+          url: 'https://example.com/document.pdf'
+        };
+        await chatStore.dispatch('chat/sendMessage', {
+          conversationId: contactId,
+          content: fileData,
+          type: 'file'
+        });
+        showToast('文件发送成功', 'success');
+        nextTick(scrollToBottom);
+      } catch (error) {
+        showToast('文件发送失败', 'error');
+        console.error('文件发送失败:', error);
+      }
+    };
+    
+    /* 发送位置消息 */
+    const handleSendLocation = async () => {
+      try {
+        // 模拟位置数据
+        const locationData = {
+          latitude: 39.9042,
+          longitude: 116.4074,
+          address: '北京市东城区天安门广场'
+        };
+        await chatStore.dispatch('chat/sendMessage', {
+          conversationId: contactId,
+          content: locationData,
+          type: 'location'
+        });
+        showToast('位置发送成功', 'success');
+        nextTick(scrollToBottom);
+      } catch (error) {
+        showToast('位置发送失败', 'error');
+        console.error('位置发送失败:', error);
+      }
     };
 
     const scrollToBottom = () => {
@@ -189,16 +294,36 @@ export default {
       nextTick(scrollToBottom)
     }, { deep: true })
 
+    // 重发消息
+    const handleResend = async (message) => {
+      try {
+        await chatStore.dispatch('chat/sendMessage', {
+          conversationId: contactId,
+          content: message.content,
+          type: message.type
+        });
+        showToast('消息已重发', 'success');
+      } catch (error) {
+        showToast('消息重发失败', 'error');
+        console.error('消息重发失败:', error);
+      }
+    };
+
     return {
       currentContact,
       currentUser,
       currentMessages,
       messageListRef,
-      inputContent,
       isLoading,
       isMyMessage,
       goBack,
-      handleSendMessage
+      handleSendMessage,
+      handleSendVoice,
+      handleSendImage,
+      handleSendVideo,
+      handleSendFile,
+      handleSendLocation,
+      handleResend
     }
   }
 }

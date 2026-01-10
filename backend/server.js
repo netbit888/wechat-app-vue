@@ -54,7 +54,28 @@ app.use(express.json());
 
 // ✅ 连接 MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wechat')
-  .then(() => console.log('✅ MongoDB连接成功'))
+  .then(async () => {
+    console.log('✅ MongoDB连接成功');
+    
+    // 修复注册问题：删除users集合中可能存在的username唯一索引
+    try {
+      // 直接使用collection操作，避免模型编译冲突
+      const usersCollection = mongoose.connection.collection('users');
+      const indexes = await usersCollection.indexes();
+      
+      console.log('当前索引:', indexes.map(idx => idx.name));
+      
+      // 检查并删除username唯一索引
+      for (const index of indexes) {
+        if (index.name.includes('username')) {
+          await usersCollection.dropIndex(index.name);
+          console.log(`✅ 已删除索引: ${index.name}`);
+        }
+      }
+    } catch (error) {
+      console.error('删除索引时出错:', error.message);
+    }
+  })
   .catch(err => console.error('❌ MongoDB连接失败:', err));
 
 // 健康检查

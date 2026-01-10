@@ -10,16 +10,24 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     const { wechatId, password, nickname } = req.body;
+    
+    console.log('注册请求:', { wechatId, password, nickname });
 
     if (!wechatId || !password) {
+      console.log('注册失败: 微信号和密码必填');
       return res.status(400).json({ success: false, error: '微信号和密码必填' });
     }
 
+    console.log('检查微信号是否存在:', wechatId);
     const exist = await User.findOne({ wechatId });
+    console.log('查询结果:', exist);
+    
     if (exist) {
+      console.log('注册失败: 微信号已存在');
       return res.status(409).json({ success: false, error: '微信号已存在' });
     }
 
+    // 创建用户，不设置phone字段，使用默认的undefined值
     const user = await User.create({
       wechatId,
       password,
@@ -29,9 +37,12 @@ router.post('/register', async (req, res) => {
     const token = generateToken(user._id);
     res.status(201).json({ success: true, data: { token, user } });
   } catch (e) {
+    console.error('注册错误:', e);
     if (e.code === 11000) {
+      console.error('重复键错误:', e.keyPattern, e.keyValue);
       const field = Object.keys(e.keyPattern)[0];
-      return res.status(409).json({ success: false, error: `${field} 已存在` });
+      const fieldName = field === 'wechatId' ? '微信号' : field;
+      return res.status(409).json({ success: false, error: `${fieldName} 已存在` });
     }
     res.status(500).json({ success: false, error: e.message });
   }

@@ -4,6 +4,11 @@ export default {
     state.currentUser = { ...state.currentUser, ...userInfo }
   },
   
+  // 添加SET_USER mutation，用于完全替换用户信息
+  SET_USER(state, user) {
+    state.currentUser = user
+  },
+  
   SET_LOGIN_STATUS(state, status) {
     state.isLoggedIn = status
   },

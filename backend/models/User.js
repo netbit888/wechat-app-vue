@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
   region:     { type: String, default: '' },
 
   // 手机号（可选，用于找回/短信）
-  phone: { type: String, sparse: true, unique: true, default: null },
+  phone: { type: String, sparse: true, unique: true },
 
   // 好友关系
   friends: [{

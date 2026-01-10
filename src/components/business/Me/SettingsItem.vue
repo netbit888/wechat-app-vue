@@ -5,17 +5,19 @@
       <div class="item-description" v-if="description">{{ description }}</div>
     </div>
     <div class="item-control">
-      <div v-if="hasSwitch" class="switch-container">
-        <input 
-          type="checkbox" 
-          :checked="switchValue"
-          @change="handleSwitchChange"
-          class="switch-input"
-          id="switch"
-        />
-        <label for="switch" class="switch-label"></label>
-      </div>
-      <span v-else class="arrow">›</span>
+      <slot name="suffix">
+        <div v-if="hasSwitch" class="switch-container">
+          <input 
+            type="checkbox" 
+            :checked="switchValue"
+            @change="handleSwitchChange"
+            class="switch-input"
+            id="switch"
+          />
+          <label for="switch" class="switch-label"></label>
+        </div>
+        <span v-else class="arrow">›</span>
+      </slot>
     </div>
   </div>
 </template>

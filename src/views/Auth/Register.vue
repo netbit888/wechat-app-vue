@@ -162,59 +162,53 @@ const onButtonRelease = () => {
 };
 
 // 处理注册
-const handleRegister = async () => {
-  if (!canRegister.value) return;
+  const handleRegister = async () => {
+    if (!canRegister.value) return;
 
-  submitting.value = true;
-  error.value = '';
+    submitting.value = true;
+    error.value = '';
 
-  try {
-    // ✅ 用户名注册请求格式
-    const payload = {
-      wechatId: form.wechatId,  // 用户名
-      password: form.password,   // 密码
-      nickname: form.nickname    // 昵称
-    };
+    try {
+      // ✅ 用户名注册请求格式
+      const payload = {
+        wechatId: form.wechatId,  // 用户名
+        password: form.password,   // 密码
+        nickname: form.nickname    // 昵称
+      };
 
-    if (import.meta.env.DEV) {
-      console.log('注册请求:', payload);
-    }
+      if (import.meta.env.DEV) {
+        console.log('注册请求:', payload);
+      }
 
-    // 直接调用API
-    const response = await http.post('/users/register', payload);
-    
-    if (import.meta.env.DEV) {
-      console.log('注册响应:', response);
-    }
-
-    // 安全校验
-    if (response?.token) {
-      localStorage.setItem('token', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user || {}));
+      // 通过 Store Action 处理注册
+      const response = await store.dispatch('user/register', payload);
       
-      store.commit('user/SET_TOKEN', response.token);
-      store.commit('user/SET_USER', response.user);
+      if (import.meta.env.DEV) {
+        console.log('注册响应:', response);
+      }
+
+      // 安全校验
+      if (response?.token) {
+        showToast('注册成功', 'success');
+        
+        setTimeout(() => {
+          router.replace('/wechat');
+        }, 500);
+      } else {
+        throw new Error(response?.error || '注册信息缺失');
+      }
+    } catch (err) {
+      const errorMsg = err?.message || '注册失败';
+      error.value = errorMsg;
+      showToast(errorMsg, 'error');
       
-      showToast('注册成功', 'success');
-      
-      setTimeout(() => {
-        router.replace('/wechat');
-      }, 500);
-    } else {
-      throw new Error(response?.error || '注册信息缺失');
+      if (import.meta.env.DEV) {
+        console.error('注册错误:', err);
+      }
+    } finally {
+      submitting.value = false;
     }
-  } catch (err) {
-    const errorMsg = err?.message || '注册失败';
-    error.value = errorMsg;
-    showToast(errorMsg, 'error');
-    
-    if (import.meta.env.DEV) {
-      console.error('注册错误:', err);
-    }
-  } finally {
-    submitting.value = false;
-  }
-};
+  };
 </script>
 
 <style scoped>

@@ -40,7 +40,7 @@
       
       <!-- 时间戳 -->
       <div class="message-time">
-        {{ formatTime(message.time) }}
+        {{ formatTime(message.timestamp) }}
       </div>
     </div>
     

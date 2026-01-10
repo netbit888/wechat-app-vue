@@ -95,7 +95,7 @@
 
       <!-- 切换账号 -->
       <div class="logout-section">
-        <button class="logout-button" @click="">切换账号</button>
+        <button class="logout-button" @click="handleSwitchAccount">切换账号</button>
       </div>
       
       <!-- 退出登录 -->
@@ -181,6 +181,14 @@ export default {
       }
     }
 
+    // 切换账号处理函数
+    const handleSwitchAccount = () => {
+      if (confirm('确定要切换账号吗？')) {
+        userStore.logout()
+        router.push('/auth/login')
+      }
+    }
+
     return {
       messageSettings,
       privacySettings,
@@ -198,6 +206,7 @@ export default {
       goToAbout,
       goToHelp,
       handleLogout,
+      handleSwitchAccount,
       goToProfile,
       goToNotification,
       goToInterfaceDisplay,

@@ -21,6 +21,7 @@ export function useUserStore() {
     // Actions
     updateProfile: (userInfo) => store.dispatch('user/updateProfile', userInfo),
     logout: () => store.dispatch('user/logout'),
+    getProfile: () => store.dispatch('user/getProfile'),
     
     // Getters
     userSettings: computed(() => store.getters['user/userSettings'])

@@ -18,6 +18,7 @@
             v-for="chat in topConversations" 
             :key="chat.id"
             @click="selectChat(chat)"
+            @contextmenu="handleContextMenu(chat, $event)"
           >
             <div class="avatar-wrapper">
               <Badge 
@@ -64,6 +65,7 @@
             v-for="chat in normalConversations" 
             :key="chat.id"
             @click="selectChat(chat)"
+            @contextmenu="handleContextMenu(chat, $event)"
           >
             <div class="avatar-wrapper">
               <Badge 
@@ -100,14 +102,31 @@
           </div>
         </div>
       </div>
+      
+      <!-- 上下文菜单 -->
+      <div 
+        v-if="showContextMenu" 
+        class="context-menu"
+        :style="{ top: contextMenuPos.y + 'px', left: contextMenuPos.x + 'px' }"
+        @click.stop
+      >
+        <div class="menu-item" @click="toggleTop(currentContextChat)">
+          {{ currentContextChat?.isTop ? '取消置顶' : '置顶聊天' }}
+        </div>
+        <div class="menu-item" @click="deleteChat(currentContextChat)">
+          删除聊天
+        </div>
+      </div>
     </main>
   </div>
 </template>
 
 <script>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { Button, Avatar, Badge } from '@/components/ui'
 import { useConversationList } from '@/composables/useConversationList' // << 关键
 import { useRouter } from 'vue-router'
+import { useChatStore } from '@/composables/useStore'
 
 export default {
   name: 'ChatList',
@@ -115,6 +134,19 @@ export default {
   setup() {
     const router = useRouter()
     const { topList: topConversations, normalList: normalConversations } = useConversationList()
+    const chatStore = useChatStore()
+    
+    // 上下文菜单状态
+    const showContextMenu = ref(false)
+    const contextMenuPos = ref({ x: 0, y: 0 })
+    const currentContextChat = ref(null)
+    
+    // 点击外部关闭上下文菜单
+    const handleClickOutside = (event) => {
+      if (showContextMenu.value) {
+        showContextMenu.value = false
+      }
+    }
 
     /* 时间格式化 */
     const formatTime = (timeString) => {
@@ -155,8 +187,62 @@ export default {
       }
     }
 
-    const showAddMenu = () => console.log('显示添加菜单')
-    const search = () => console.log('搜索')
+    /* 显示添加菜单 */
+    const showAddMenu = () => {
+      console.log('显示添加菜单')
+      // 实际实现中应该显示添加好友、创建群聊等选项
+    }
+    
+    /* 搜索聊天 */
+    const search = () => {
+      console.log('搜索聊天')
+      // 实际实现中应该打开搜索页面
+    }
+    
+    /* 切换置顶状态 */
+    const toggleTop = (chat) => {
+      try {
+        chatStore.dispatch('chat/TOGGLE_CONVERSATION_TOP', chat.id)
+        showContextMenu.value = false
+      } catch (e) {
+        console.error('切换置顶状态失败:', e)
+      }
+    }
+    
+    /* 显示上下文菜单 */
+    const handleContextMenu = (chat, event) => {
+      event.preventDefault()
+      event.stopPropagation()
+      
+      // 计算菜单位置
+      const x = event.clientX
+      const y = event.clientY
+      
+      currentContextChat.value = chat
+      contextMenuPos.value = { x, y }
+      showContextMenu.value = true
+    }
+    
+    /* 删除聊天 */
+    const deleteChat = (chat) => {
+      try {
+        if (confirm('确定要删除此聊天吗？')) {
+          chatStore.dispatch('chat/DELETE_CONVERSATION', chat.id)
+          showContextMenu.value = false
+        }
+      } catch (e) {
+        console.error('删除聊天失败:', e)
+      }
+    }
+    
+    /* 生命周期 */
+    onMounted(() => {
+      document.addEventListener('click', handleClickOutside)
+    })
+    
+    onUnmounted(() => {
+      document.removeEventListener('click', handleClickOutside)
+    })
 
     return {
       topConversations,
@@ -164,7 +250,13 @@ export default {
       formatTime,
       selectChat,
       showAddMenu,
-      search
+      search,
+      showContextMenu,
+      contextMenuPos,
+      currentContextChat,
+      handleContextMenu,
+      toggleTop,
+      deleteChat
     }
   }
 }
@@ -397,5 +489,32 @@ export default {
 /* 置顶标签移除 - 微信不显示置顶标签 */
 .top-label {
   display: none;
+}
+
+/* 上下文菜单样式 */
+.context-menu {
+  position: fixed;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  padding: 8px 0;
+  min-width: 150px;
+  font-size: 14px;
+}
+
+.menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  color: #333;
+  transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.menu-item:active {
+  background-color: #e5e5e5;
 }
 </style>

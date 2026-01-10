@@ -2,11 +2,10 @@ export default {
   // 当前登录用户信息
   currentUser: {
     id: 1,
-    wechatId: 'wx_user_001',
+    wechatId: 'wxid_123456',
     nickname: '微信用户',
     avatar: '',
     phone: '13800138000',
-    wechatId: 'wxid_123456',
     gender: 1, // 0:未知, 1:男, 2:女
     region: '广东, 深圳',
     signature: '这个人很懒，什么都没留下',

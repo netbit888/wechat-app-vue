@@ -2,11 +2,12 @@
   <div class="profile-page">
     <!-- 用户信息头部 -->
     <header class="user-header">
-      <div class="user-info" @click="$router.push('/me/profile-edit')">
+      <div class="user-info" @click="$router.push('/settings/profile')">
         <Avatar 
           :size="'large'" 
+          :src="userInfo.avatar"
           :text="userInfo.nickname" 
-          :backgroundColor="userInfo.avatarColor"
+          :backgroundColor="userInfo.avatarColor || '#ccc'"
         />
         <div class="user-details">
           <div class="user-name">{{ userInfo.nickname }}</div>
@@ -72,7 +73,7 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/composables/useStore'
 import Avatar from '@/components/ui/Avatar/Avatar.vue'
@@ -87,8 +88,25 @@ export default {
   setup() {
     const router = useRouter()
     const userStore = useUserStore()
+    
+    // 获取用户信息
+    const userInfo = computed(() => userStore.currentUser || {}) 
 
-    const userInfo = computed(() => userStore.currentUser)
+    // 从数据库获取用户信息
+    const fetchUserInfo = async () => {
+      try {
+        console.log('开始获取用户信息')
+        await userStore.getProfile()
+        console.log('获取用户信息成功:', userStore.currentUser)
+      } catch (error) {
+        console.error('获取用户信息失败:', error)
+      }
+    }
+    
+    // 组件挂载时获取用户信息
+    onMounted(() => {
+      fetchUserInfo()
+    })
 
     const viewProfileDetail = () => {
       console.log('查看个人资料详情')

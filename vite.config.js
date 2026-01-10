@@ -13,6 +13,7 @@ export default defineConfig({
   server: {
     host: '0.0.0.0', // 允许局域网访问（如用手机调试）
     port: 5173,
+    logLevel: 'info', // 调整日志级别，减少底层调试日志
     // ✅ 添加代理配置（关键！）
     proxy: {
       '/api': {
