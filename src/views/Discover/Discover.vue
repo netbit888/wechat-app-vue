@@ -2,8 +2,11 @@
   <div class="discover-page">
     <!-- 页面头部 -->
     <header class="page-header">
-      <button class="back-button" @click="goBack">⬅</button>
       <h1>发现</h1>
+      <div class="header-actions">
+        <button class="header-button" @click="showAddMenu">➕</button>
+        <button class="header-button" @click="search">🔍</button>
+      </div>
     </header>
 
     <!-- 功能列表 -->
@@ -84,12 +87,16 @@ export default {
   setup() {
     const router = useRouter()
     
-    const goBack = () => {
-      router.back()
+    const goToMoments = () => {
+      router.push('/discover/moments')
     }
 
-    const goToMoments = () => {
-      router.push('/moments')
+    const showAddMenu = () => {
+      console.log('显示添加菜单')
+    }
+
+    const search = () => {
+      console.log('搜索')
     }
 
     const goToScan = () => {
@@ -117,14 +124,15 @@ export default {
     }
 
     return {
-      goBack,
       goToMoments,
       goToScan,
       goToShake,
       goToMiniPrograms,
       goToGames,
       goToShopping,
-      goToLive
+      goToLive,
+      showAddMenu,
+      search
     }
   }
 }
@@ -164,27 +172,35 @@ export default {
 .page-header h1 {
   font-size: 17px;
   font-weight: 500;
-  color: #000;
+  color: var(--wechat-text-primary);
   margin: 0;
   text-align: center;
   line-height: 44px;
 }
 
-.back-button {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 5px 10px;
-  color: #000;
-  transition: opacity 0.2s;
+.header-actions {
+  display: flex;
+  gap: 25px;
   position: absolute;
-  left: 5px;
+  right: 15px;
   top: 50%;
   transform: translateY(-50%);
 }
 
-.back-button:hover {
+.header-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--wechat-text-primary);
+  cursor: pointer;
+  padding: 5px;
+  transition: opacity 0.2s;
+  width: auto;
+  height: auto;
+  line-height: 1;
+}
+
+.header-button:hover {
   opacity: 0.7;
 }
 

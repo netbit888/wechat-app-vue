@@ -61,6 +61,27 @@ export function useWebSocket(url) {
         store.commit('chat/ADD_MESSAGE', message);
       });
 
+      // 接收好友请求通知
+      socket.value.on('friendRequest', (request) => {
+        // 收到新的好友请求，更新 store
+        console.log('收到好友请求通知:', request);
+        // 获取当前好友请求列表
+        const currentRequests = store.state.contact.friendRequests || [];
+        // 检查是否已存在相同的请求
+        const existingRequestIndex = currentRequests.findIndex(req => req._id === request._id);
+        let updatedRequests;
+        if (existingRequestIndex >= 0) {
+          // 更新已存在的请求
+          updatedRequests = [...currentRequests];
+          updatedRequests[existingRequestIndex] = request;
+        } else {
+          // 添加新请求
+          updatedRequests = [...currentRequests, request];
+        }
+        // 更新 store
+        store.commit('contact/SET_FRIEND_REQUESTS', updatedRequests);
+      });
+
       // 连接断开
       socket.value.on('disconnect', (reason) => {
         console.log(`WebSocket 已断开，原因：${reason}`);

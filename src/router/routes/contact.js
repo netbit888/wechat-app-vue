@@ -18,6 +18,12 @@ const routes = [
     name: 'NewFriends',
     component: () => import('@/views/Contact/NewFriends.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/contact/add-friend/search',
+    name: 'AddFriendSearch',
+    component: () => import('@/views/Contact/AddFriendSearch.vue'),
+    meta: { requiresAuth: true }
   }
 ]
 

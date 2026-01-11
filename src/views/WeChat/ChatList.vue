@@ -3,8 +3,8 @@
     <header class="page-header">
       <h1>微信</h1>
       <div class="header-actions">
-        <Button type="text" size="small" @click="showAddMenu">➕</Button>
-        <Button type="text" size="small" @click="search">🔍</Button>
+        <button class="header-button" @click="showAddMenu">➕</button>
+        <button class="header-button" @click="search">🔍</button>
       </div>
     </header>
     
@@ -123,14 +123,14 @@
 
 <script>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Button, Avatar, Badge } from '@/components/ui'
+import { Avatar, Badge } from '@/components/ui'
 import { useConversationList } from '@/composables/useConversationList' // << 关键
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/composables/useStore'
 
 export default {
   name: 'ChatList',
-  components: { Button, Avatar, Badge },
+  components: { Avatar, Badge },
   setup() {
     const router = useRouter()
     const { topList: topConversations, normalList: normalConversations } = useConversationList()
@@ -313,6 +313,23 @@ export default {
   right: 15px;
   top: 50%;
   transform: translateY(-50%);
+}
+
+.header-button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--wechat-text-primary);
+  cursor: pointer;
+  padding: 5px;
+  transition: opacity 0.2s;
+  width: auto;
+  height: auto;
+  line-height: 1;
+}
+
+.header-button:hover {
+  opacity: 0.7;
 }
 
 /* 按钮样式调整 - 微信图标大小 */

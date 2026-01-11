@@ -66,14 +66,48 @@
 
     <!-- 操作按钮 -->
     <div class="action-buttons">
-      <button class="action-btn primary" @click="sendMessage">
-        <span class="btn-icon">💬</span>
-        <span class="btn-text">发消息</span>
-      </button>
-      <button class="action-btn" @click="videoCall">
-        <span class="btn-icon">📞</span>
-        <span class="btn-text">音视频通话</span>
-      </button>
+      <!-- 已添加为好友 -->
+      <template v-if="isFriend">
+        <button class="action-btn primary" @click="sendMessage">
+          <span class="btn-icon">💬</span>
+          <span class="btn-text">发消息</span>
+        </button>
+        <button class="action-btn" @click="videoCall">
+          <span class="btn-icon">📞</span>
+          <span class="btn-text">音视频通话</span>
+        </button>
+      </template>
+      <!-- 未添加为好友 -->
+      <template v-else>
+        <!-- 发送请求状态 -->
+        <div v-if="friendRequestStatus === 'sent'" class="request-status">
+          <p>好友请求已发送</p>
+          <button class="cancel-btn" @click="cancelRequest">取消请求</button>
+        </div>
+        
+        <!-- 发送请求表单 -->
+        <div v-else-if="friendRequestStatus === 'form'" class="request-form">
+          <div class="form-header">发送好友请求</div>
+          <textarea 
+            v-model="friendRequestMessage" 
+            placeholder="请输入验证消息（可选）" 
+            class="message-input"
+            rows="3"
+          ></textarea>
+          <div class="form-actions">
+            <button class="cancel-btn" @click="cancelForm">取消</button>
+            <button class="send-btn" @click="sendFriendRequest">发送</button>
+          </div>
+        </div>
+        
+        <!-- 添加按钮 -->
+        <template v-else>
+          <button class="action-btn primary" @click="showRequestForm">
+            <span class="btn-icon">+</span>
+            <span class="btn-text">添加到通讯录</span>
+          </button>
+        </template>
+      </template>
     </div>
   </div>
 
@@ -84,13 +118,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useStore } from '@/store'
 import Avatar from '@/components/ui/Avatar/Avatar.vue'
 import contactAPI from '@/api/modules/contact.js'
 
 const route   = useRoute()
 const router  = useRouter()
+const store = useStore()
 
 /* 1. 路由参数保持字符串即可，不用 parseInt */
 const contactId = route.params.id
@@ -98,16 +134,43 @@ const contactId = route.params.id
 /* 2. 存储联系人详情 */
 const contact = ref(null)
 const isLoading = ref(true)
+const isFriend = ref(false)
+const friendRequestStatus = ref('none') // none, form, sent
+const friendRequestMessage = ref('')
+const friendRequestId = ref(null)
 
-/* 3. 获取联系人详情 */
+/* 3. 获取联系人详情和好友状态 */
 onMounted(async () => {
   try {
     isLoading.value = true
+    
+    // 获取联系人详情
     const res = await contactAPI.getDetail(contactId)
     if (res?.ok && res?.contact) {
       contact.value = {
         ...res.contact,
         id: res.contact._id || res.contact.id
+      }
+      
+      // 获取当前用户的好友列表，判断是否是好友
+      const friendsRes = await contactAPI.getList()
+      if (friendsRes?.friends) {
+        const friendIds = friendsRes.friends.map(friend => friend._id || friend.id)
+        isFriend.value = friendIds.includes(contact.value.id)
+      }
+      
+      // 检查是否已发送好友请求
+      if (!isFriend.value) {
+        const sentRequestsRes = await contactAPI.getSentRequests()
+        if (sentRequestsRes?.requests) {
+          const existingRequest = sentRequestsRes.requests.find(req => 
+            req.to._id === contact.value.id || req.to === contact.value.id
+          )
+          if (existingRequest) {
+            friendRequestStatus.value = 'sent'
+            friendRequestId.value = existingRequest._id
+          }
+        }
       }
     } else {
       router.back()
@@ -133,6 +196,50 @@ const editRemark = () => console.log('编辑备注')
 const callPhone  = () => console.log('拨打电话:', contact.value?.phone)
 const viewMoments= () => console.log('查看朋友圈')
 const showMoreMenu=()=> console.log('显示更多菜单')
+
+// 显示添加好友表单
+const showRequestForm = () => {
+  friendRequestStatus.value = 'form'
+}
+
+// 取消表单
+const cancelForm = () => {
+  friendRequestStatus.value = 'none'
+  friendRequestMessage.value = ''
+}
+
+// 发送好友请求
+const sendFriendRequest = async () => {
+  try {
+    await contactAPI.add(contact.value.id, friendRequestMessage.value)
+    friendRequestStatus.value = 'sent'
+    friendRequestMessage.value = ''
+    // 这里应该获取请求ID，但当前API不返回，暂时注释
+    // friendRequestId.value = res.requestId
+  } catch (e) {
+    alert(e?.response?.data?.msg || '发送好友请求失败')
+  }
+}
+
+// 取消好友请求
+const cancelRequest = async () => {
+  try {
+    // 由于当前API不返回请求ID，我们需要重新获取已发送请求列表
+    const sentRequestsRes = await contactAPI.getSentRequests()
+    if (sentRequestsRes?.requests) {
+      const existingRequest = sentRequestsRes.requests.find(req => 
+        req.to._id === contact.value.id || req.to === contact.value.id
+      )
+      if (existingRequest) {
+        await contactAPI.cancelRequest(existingRequest._id)
+        friendRequestStatus.value = 'none'
+        friendRequestId.value = null
+      }
+    }
+  } catch (e) {
+    alert(e?.response?.data?.msg || '取消好友请求失败')
+  }
+}
 
 /* 6. 模板需要的东西统一导出 */
 /*  使用 <script setup> 时自动暴露，无需 return */
@@ -414,6 +521,91 @@ const showMoreMenu=()=> console.log('显示更多菜单')
 .btn-text {
   color: inherit;
   font-size: 16px;
+}
+
+/* 请求状态 */
+.request-status {
+  background-color: white;
+  padding: 16px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.request-status p {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--wechat-text-primary);
+}
+
+.cancel-btn {
+  background-color: transparent;
+  border: none;
+  color: var(--wechat-primary);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.cancel-btn:hover {
+  background-color: var(--wechat-cell-hover);
+}
+
+/* 请求表单 */
+.request-form {
+  background-color: white;
+  padding: 16px;
+  border-radius: 6px;
+}
+
+.form-header {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--wechat-text-primary);
+  margin-bottom: 12px;
+}
+
+.message-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--wechat-border-light);
+  border-radius: 6px;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.5;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.message-input:focus {
+  border-color: var(--wechat-primary);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.send-btn {
+  padding: 8px 16px;
+  background-color: var(--wechat-primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.send-btn:hover {
+  background-color: #06ad56;
+}
+
+.send-btn:active {
+  transform: scale(0.98);
 }
 
 /* 加载状态 */

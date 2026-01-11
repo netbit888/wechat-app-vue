@@ -9,14 +9,7 @@
       </div>
     </header>
 
-    <!-- 搜索栏 -->
-    <div class="search-section">
-      <SearchBar 
-        v-model="searchKeyword"
-        placeholder="搜索"
-        @search="handleSearch"
-      />
-    </div>
+    
 
     <!-- 功能入口 -->
     <div class="function-section">
@@ -27,61 +20,62 @@
         </div>
         <Badge :count="friendRequestsCount" :dot="false" />
       </div>
+      <div class="function-item" @click="goToChatOnlyFriends">
+        <div class="function-icon">💬</div>
+        <div class="function-info">
+          <div class="function-label">仅聊天的朋友</div>
+        </div>
+      </div>
+      <div class="function-item" @click="goToGroups">
+        <div class="function-icon">👥</div>
+        <div class="function-info">
+          <div class="function-label">群聊</div>
+        </div>
+      </div>
       <div class="function-item" @click="goToTags">
         <div class="function-icon">🏷️</div>
         <div class="function-info">
           <div class="function-label">标签</div>
         </div>
       </div>
-      <div class="function-item" @click="goToGroups">
-        <div class="function-icon">💬</div>
+      <div class="function-item" @click="goToOfficialAccounts">
+        <div class="function-icon">📰</div>
         <div class="function-info">
-          <div class="function-label">群聊</div>
+          <div class="function-label">公众号</div>
         </div>
       </div>
-      <div class="function-item" @click="goToDevices">
-        <div class="function-icon">📱</div>
+      <div class="function-item" @click="goToServiceAccounts">
+        <div class="function-icon">�</div>
         <div class="function-info">
-          <div class="function-label">设备</div>
+          <div class="function-label">服务号</div>
+        </div>
+      </div>
+      <div class="function-item" @click="goToEnterprise">
+        <div class="function-info">
+          <div class="function-label">我的企业及企业联系人</div>
+        </div>
+      </div>
+      <div class="function-item" @click="goToEnterpriseContacts">
+        <div class="function-icon">�</div>
+        <div class="function-info">
+          <div class="function-label">企业微信联系人</div>
         </div>
       </div>
     </div>
 
     <!-- 联系人列表 -->
     <main class="contact-list" ref="contactListRef">
-      <!-- 搜索结果显示 -->
-      <div v-if="searchKeyword" class="search-results">
-        <div class="section-title">搜索结果</div>
+      <!-- 正常分组显示 -->
+      <div v-for="group in groupedContacts" :key="group.letter">
+        <div class="section-title" :id="`group-${group.letter}`">
+          {{ group.letter }}
+        </div>
         <ContactItem 
-          v-for="contact in searchResults" 
+          v-for="contact in group.contacts" 
           :key="contact.id"
           :contact="contact"
-          @click="(c)=>{console.log('点好友',c?.id);viewContactDetail(c)}"
-        >
-          <!-- ✅ 新增：添加按钮（仅非好友） -->
-          <template #extra>
-            <button
-              v-if="!isAlreadyFriend(contact.id)"
-              class="add-btn"
-              @click.stop="addFriend(contact.id)"
-            >添加</button>
-          </template>
-        </ContactItem>
-      </div>
-
-      <!-- 正常分组显示 -->
-      <div v-else>
-        <div v-for="group in groupedContacts" :key="group.letter">
-          <div class="section-title" :id="`group-${group.letter}`">
-            {{ group.letter }}
-          </div>
-          <ContactItem 
-            v-for="contact in group.contacts" 
-            :key="contact.id"
-            :contact="contact"
-            @click="(c)=>{console.log('父级传参',c);viewContactDetail(c)}"
-          />
-        </div>
+          @click="(c)=>{console.log('父级传参',c);viewContactDetail(c)}"
+        />
       </div>
     </main>
 
@@ -98,7 +92,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useStore } from '@/store'
 import { useRouter } from 'vue-router'
 import contactAPI from '@/api/modules/contact'
-import SearchBar from '@/components/business/Common/SearchBar/SearchBar.vue'
+
 import ContactItem from '@/components/business/Contact/ContactItem/ContactItem.vue'
 import LetterNavigation from '@/components/business/Contact/LetterNavigation.vue'
 import Badge from '@/components/ui/Badge/Badge.vue'
@@ -110,12 +104,11 @@ const contacts = computed(() => store.getters['contact/contacts'])
 
 const router = useRouter()
 const contactListRef = ref(null)
-const searchKeyword = ref('')
-const searchResults = ref([])
 
 /* 1. 初始化：只负责把后端数据写进 store */
 onMounted(async () => {
   try {
+    // 加载联系人列表
     const res = await contactAPI.getList()
     console.log('后端返回', res)          // 留着你现有的日志
     // 关键：显式把 _id 映射成 id
@@ -126,43 +119,24 @@ onMounted(async () => {
     }))
     await store.dispatch('contact/loadContacts', list)
     console.log('store里的contacts', contacts.value)
+    
+    // 加载好友请求
+    const requestsRes = await contactAPI.getRequests()
+    console.log('后端返回好友请求', requestsRes)
+    await store.dispatch('contact/loadFriendRequests', requestsRes.requests || [])
   } catch (e) {
     console.error('加载联系人失败', e)
   }
 })
 
-/* 2. 好友请求数 */
-const friendRequestsCount = computed(() => store.state.contact.friendRequests?.length || 0)
-
-/* 3. 搜索：依然走接口，结果仅用于展示 */
-const handleSearch = async (keyword) => {
-  const kw = keyword.trim()
-  if (!kw) { searchResults.value = []; return }
-  try {
-    const { users } = await contactAPI.search(kw)
-    // 确保搜索结果中的用户对象有id属性
-    searchResults.value = users.map(user => ({
-      ...user,
-      id: user._id || user.id
-    }))
-  } catch (e) {
-    console.error('搜索失败', e)
-    searchResults.value = []
-  }
-}
+/* 2. 好友请求数 - 只显示等待验证的请求 */
+const friendRequestsCount = computed(() => {
+  const requests = store.state.contact.friendRequests || []
+  return requests.filter(req => req.status === 'pending').length
+})
 
 /* 4. 判断是否好友 → 直接用 getter 数据 */
 const isAlreadyFriend = (userId) => contacts.value.some(c => c.id === userId)
-
-/* 5. 加好友 */
-const addFriend = async (userId) => {
-  try {
-    await contactAPI.add(userId)
-    alert('已发送好友请求')
-  } catch (e) {
-    alert(e?.response?.data?.msg || '添加失败')
-  }
-}
 
 /* 6. 首字母 */
 const getFirstLetter = (name) => {
@@ -208,11 +182,15 @@ const viewContactDetail = (contact) => {
 
 /* 10. 其他入口 */
 const showAddMenu = () => console.log('显示添加菜单')
-const search = () => console.log('搜索')
+const search = () => router.push('/contact/add-friend/search')
 const goToNewFriends = () => router.push('/contact/new-friends')
+const goToChatOnlyFriends = () => console.log('跳转到仅聊天的朋友')
 const goToTags = () => console.log('跳转到标签')
 const goToGroups = () => console.log('跳转到群聊')
-const goToDevices = () => console.log('跳转到设备')
+const goToOfficialAccounts = () => console.log('跳转到公众号')
+const goToServiceAccounts = () => console.log('跳转到服务号')
+const goToEnterprise = () => console.log('跳转到我的企业及企业联系人')
+const goToEnterpriseContacts = () => console.log('跳转到企业微信联系人')
 </script>
 
 <style scoped>

@@ -23,6 +23,9 @@ export function useUserStore() {
     logout: () => store.dispatch('user/logout'),
     getProfile: () => store.dispatch('user/getProfile'),
     
+    // Mutations
+    setUser: (user) => store.commit('user/SET_USER', user),
+    
     // Getters
     userSettings: computed(() => store.getters['user/userSettings'])
   }

@@ -75,12 +75,13 @@ const routes = [
     component: () => import('@/views/Me/Settings/Help.vue'),
     meta: { requiresAuth: true }
   },
-  {
-    path: '/settings/about',
-    name: 'About',
-    component: () => import('@/views/Me/Settings/About.vue'),
-    meta: { requiresAuth: true }
-  }
+  {    path: '/settings/about',    name: 'About',    component: () => import('@/views/Me/Settings/About.vue'),    meta: { requiresAuth: true }  },
+  /* 个人资料编辑页面 */
+  {    path: '/me/settings/avatar',    name: 'AvatarSetting',    component: () => import('@/components/business/Me/AvatarUpload/AvatarUpload.vue'),    meta: { requiresAuth: true }  },
+  {    path: '/me/settings/name',    name: 'NameSetting',    component: () => import('@/views/Me/Settings/NameSetting.vue'),    meta: { requiresAuth: true }  },
+  {    path: '/me/settings/gender',    name: 'GenderSetting',    component: () => import('@/views/Me/Settings/GenderSetting.vue'),    meta: { requiresAuth: true }  },
+  {    path: '/me/settings/region',    name: 'RegionSetting',    component: () => import('@/views/Me/Settings/RegionSetting.vue'),    meta: { requiresAuth: true }  },
+  {    path: '/me/settings/signature',    name: 'SignatureSetting',    component: () => import('@/views/Me/Settings/SignatureSetting.vue'),    meta: { requiresAuth: true }  }
 ]
 
 export default routes

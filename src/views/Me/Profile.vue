@@ -12,13 +12,17 @@
         <div class="user-details">
           <div class="user-name">{{ userInfo.nickname }}</div>
           <div class="user-id">微信号: {{ userInfo.wechatId }}</div>
-          <div class="user-signature" v-if="userInfo.signature">
-            {{ userInfo.signature }}
-          </div>
         </div>
         <div class="qr-code" @click.stop="showQRCode">
-          📷
+          📛
         </div>
+      </div>
+      <!-- 状态栏 -->
+      <div class="status-bar" @click="goToStatus">
+        <button class="status-btn">+ 状态</button>
+        <button class="refresh-btn" @click.stop="refreshStatus">
+          🔄
+        </button>
       </div>
     </header>
 
@@ -27,7 +31,7 @@
       <!-- 服务菜单 -->
       <div class="menu-section">
         <MenuItem 
-          icon="💰"
+          icon="💚"
           title="服务"
           description="支付、卡券等服务"
           @click="goToServices"
@@ -49,9 +53,14 @@
           @click="goToMoments"
         />
         <MenuItem 
+          icon="📺"
+          title="视频号和公众号"
+          @click="goToVideoAccounts"
+        />
+        <MenuItem 
           icon="💳"
           title="卡包"
-          @click="goToWallet"
+          @click="goToCardPackage"
         />
         <MenuItem 
           icon="😊"
@@ -89,8 +98,27 @@ export default {
     const router = useRouter()
     const userStore = useUserStore()
     
-    // 获取用户信息
-    const userInfo = computed(() => userStore.currentUser || {}) 
+    // 获取用户信息，添加默认值和测试数据
+    const userInfo = computed(() => {
+      const user = userStore.currentUser || {};
+      
+      // 测试数据，当没有用户信息时使用
+      const testUser = {
+        nickname: 'Mars',
+        wechatId: 'T19539788318',
+        avatarColor: '#FF6B6B',
+        signature: '这是一个测试签名'
+      };
+      
+      return {
+        nickname: user.nickname || testUser.nickname,
+        wechatId: user.wechatId || testUser.wechatId,
+        avatar: user.avatar || '',
+        avatarColor: user.avatarColor || testUser.avatarColor,
+        signature: user.signature || testUser.signature,
+        ...user
+      };
+    })
 
     // 从数据库获取用户信息
     const fetchUserInfo = async () => {
@@ -142,6 +170,22 @@ export default {
       router.push('/settings')
     }
 
+    const goToStatus = () => {
+      console.log('跳转到状态页面')
+    }
+
+    const refreshStatus = () => {
+      console.log('刷新状态')
+    }
+
+    const goToVideoAccounts = () => {
+      console.log('跳转到视频号和公众号')
+    }
+
+    const goToCardPackage = () => {
+      console.log('跳转到卡包')
+    }
+
     const handleLogout = () => {
       if (confirm('确定要退出登录吗？')) {
         userStore.logout()
@@ -159,6 +203,10 @@ export default {
       goToWallet,
       goToStickers,
       goToSettings,
+      goToStatus,
+      refreshStatus,
+      goToVideoAccounts,
+      goToCardPackage,
       handleLogout
     }
   }
@@ -168,29 +216,29 @@ export default {
 <style scoped>
 :root {
   --wechat-primary: #07c160;
-  --wechat-bg: #ededed;
+  --wechat-bg-color: #ededed;
   --wechat-bg-grey: #f5f5f5;
-  --wechat-border: #d6d6d6;
-  --wechat-border-light: #e5e5e5;
+  --wechat-border-color: #d6d6d6;
   --wechat-text-primary: #000000;
   --wechat-text-secondary: #999999;
-  --wechat-error: #fa5151;
+  --wechat-error-color: #fa5151;
 }
 
 .profile-page {
   height: 100vh;
-  background-color: var(--wechat-bg);
+  background-color: var(--wechat-bg-color);
   display: flex;
   flex-direction: column;
-  overflow-y: auto;   /* ← 加这一行就能滑 */
+  overflow-y: auto;
 }
 
-/* 用户信息头部 - 微信渐变背景 */
+/* 用户信息头部 - 微信白色背景 */
 .user-header {
-  background: linear-gradient(135deg, #07c160 0%, #06ad56 100%);
-  padding: 40px 15px 30px;
-  color: white;
+  background: white;
+  padding: 15px;
+  color: var(--wechat-text-primary);
   position: relative;
+  border-bottom: 1px solid var(--wechat-border-color);
 }
 
 .user-info {
@@ -198,6 +246,7 @@ export default {
   align-items: center;
   cursor: pointer;
   position: relative;
+  padding: 10px 0;
 }
 
 .user-details {
@@ -210,37 +259,65 @@ export default {
 .user-name {
   font-size: 20px;
   font-weight: 500;
-  margin-bottom: 6px;
-  color: #fff;
+  margin-bottom: 2px;
+  color: var(--wechat-text-primary);
 }
 
 .user-id {
   font-size: 13px;
-  opacity: 0.9;
-  margin-bottom: 4px;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.user-signature {
-  font-size: 13px;
-  opacity: 0.8;
-  color: rgba(255, 255, 255, 0.8);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 200px;
+  opacity: 0.7;
+  color: var(--wechat-text-secondary);
 }
 
 .qr-code {
   font-size: 24px;
   padding: 10px;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--wechat-text-primary);
   transition: transform 0.2s;
 }
 
 .qr-code:hover {
   transform: scale(1.1);
+}
+
+/* 状态栏 */
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--wechat-border-color);
+  margin-top: 5px;
+}
+
+.status-btn {
+  background: none;
+  border: 1px solid var(--wechat-primary);
+  color: var(--wechat-primary);
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.status-btn:hover {
+  background-color: rgba(7, 193, 96, 0.1);
+}
+
+.refresh-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px;
+  color: var(--wechat-text-secondary);
+  transition: transform 0.2s;
+}
+
+.refresh-btn:hover {
+  transform: rotate(180deg);
 }
 
 /* 功能菜单 */
@@ -250,24 +327,29 @@ export default {
 }
 
 .menu-section {
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   background-color: white;
 }
 
 .menu-section:first-child {
-  border-top: 1px solid var(--wechat-border);
+  margin-top: 15px;
+}
+
+/* 菜单之间的分隔线 */
+.menu-section:not(:last-child) {
+  border-bottom: 1px solid var(--wechat-border-color);
 }
 
 .logout-footer {
   padding: 20px 15px;
   background-color: white;
-  border-top: 1px solid var(--wechat-border);
+  border-top: 1px solid var(--wechat-border-color);
 }
 
 .logout-button {
   width: 100%;
   padding: 12px;
-  background-color: var(--wechat-error);
+  background-color: var(--wechat-error-color);
   color: white;
   border: none;
   border-radius: 4px;

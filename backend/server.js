@@ -5,6 +5,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// 定义__dirname
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 // 导入路由
 import userRoutes from './routes/users.js';
 import chatRoutes from './routes/chat.js';
@@ -51,6 +54,14 @@ app.use(cors({
 
 // 中间件
 app.use(express.json());
+
+// 静态文件服务 - 用于访问上传的头像
+import fs from 'fs';
+const uploadsDir = path.join(__dirname, 'uploads/avatars');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ✅ 连接 MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/wechat')
@@ -122,7 +133,6 @@ app.use('/api/contacts', contactRoutes);
 
 // ==================== SPA Fallback 处理（关键修复！）====================
 // 作用：让前端路由（如/auth/login）刷新时能正确加载 Vue 应用
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.get('*', (req, res, next) => {
   // 只处理 GET 请求，确保 POST/PUT/DELETE 等 API 请求能正确走到下面的 404 JSON
   if (req.method === 'GET') {

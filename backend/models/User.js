@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
   // 个人资料（全部可选）
   nickname:   { type: String, default: '' },
   avatar:     { type: String, default: '' },
+  avatarColor: { type: String, default: '' },
   signature:  { type: String, default: '' },
   gender:     { type: Number, enum: [0, 1, 2], default: 0 }, // 0保密 1男 2女
   region:     { type: String, default: '' },

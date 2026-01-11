@@ -159,23 +159,22 @@ export default {
     
     // 头像设置
     const goToAvatarSetting = () => {
-      console.log('跳转到头像设置')
-      // 实际实现中应该跳转到头像设置页面
+      router.push('/me/settings/avatar')
     }
     
     // 名字设置
     const goToNameSetting = () => {
-      console.log('跳转到名字设置')
+      router.push('/me/settings/name')
     }
     
     // 性别设置
     const goToGenderSetting = () => {
-      console.log('跳转到性别设置')
+      router.push('/me/settings/gender')
     }
     
     // 地区设置
     const goToRegionSetting = () => {
-      console.log('跳转到地区设置')
+      router.push('/me/settings/region')
     }
     
     // 手机号设置
@@ -200,7 +199,7 @@ export default {
     
     // 签名设置
     const goToSignatureSetting = () => {
-      console.log('跳转到签名设置')
+      router.push('/me/settings/signature')
     }
     
     // 来电铃声设置

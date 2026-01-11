@@ -101,7 +101,12 @@ export const http = {
   upload: (url, formData, onProgress) => 
     request.post(url, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      onUploadProgress: onProgress
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percent = progressEvent.loaded / progressEvent.total;
+          onProgress(percent);
+        }
+      }
     })
 };
 
